@@ -1,0 +1,13 @@
+name: Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Cloud Container Cluster
+        run: echo "Production deployment pipeline executed."

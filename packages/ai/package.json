@@ -1,0 +1,13 @@
+{
+  "name": "@career-bridge/ai",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": { "lint": "tsc --noEmit" },
+  "dependencies": {
+    "@career-bridge/types": "workspace:*",
+    "@career-bridge/services": "workspace:*",
+    "@career-bridge/config": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.0.0", "@types/node": "^20.0.0" }
+}

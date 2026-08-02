@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: ../../backend/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+
+  intelligence:
+    build:
+      context: ../../backend/intelligence
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"

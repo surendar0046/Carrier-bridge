@@ -1,0 +1,16 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, dev ]
+
+jobs:
+  test-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm run build --filter=@career-bridge/gateway

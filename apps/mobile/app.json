@@ -1,0 +1,11 @@
+{
+  "name": "CareerBridgeMobile",
+  "displayName": "Career Bridge",
+  "expo": {
+    "name": "Career Bridge",
+    "slug": "career-bridge",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark"
+  }
+}

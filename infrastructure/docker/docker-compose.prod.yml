@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: careerbridge/gateway:latest
+    restart: always
+    ports:
+      - "4000:4000"
+
+  web:
+    image: careerbridge/web:latest
+    restart: always
+    ports:
+      - "3000:3000"
+
+  intelligence:
+    image: careerbridge/intelligence:latest
+    restart: always
+    ports:
+      - "8000:8000"

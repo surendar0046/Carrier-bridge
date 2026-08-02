@@ -1,0 +1,558 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
+
+html {
+  font-size: 118.75% !important; /* Scale up font sizes globally */
+}
+
+* {
+  border-color: #e2e8f0;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #334155;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-sans);
+}
+
+body::selection {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+   The app was built with a dark theme. These rules convert it to light.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page & Container Backgrounds ────────────────────────────────────────────
+   Catch ALL dark backgrounds including opacity-modified variants like /50, /40, /30, /90 */
+body,
+[class*="bg-\[#020617\]"],
+[class*="bg-slate-950"],
+[class*="bg-slate-900"] {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  color: #334155 !important;
+}
+
+/* Dark neutral card/container backgrounds → light gray */
+[class*="bg-slate-800"],
+[class*="bg-white\/5"],
+[class*="bg-slate-900\/50"],
+[class*="bg-slate-800\/50"],
+[class*="bg-slate-950\/40"],
+[class*="bg-slate-950\/30"] {
+  background-color: #f1f5f9 !important;
+}
+
+/* ── Glass & Card Surfaces ───────────────────────────────────────────────────── */
+aside.glass,
+.glass,
+.glass-card {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────────── */
+/* Headings & white text → dark for readability */
+h1, h2, h3, h4, h5, h6,
+.glass-card h1, .glass-card h2, .glass-card h3,
+.glass h1, .glass h2, .glass h3,
+main h1, main h2, main h3 {
+  color: #0f172a !important;
+}
+
+/* Only override .text-white on NON-interactive, NON-gradient, NON-badge elements */
+main .text-white,
+.glass-card .text-white,
+.glass .text-white {
+  color: #0f172a !important;
+}
+
+/* Secondary text colors */
+.text-slate-200, .text-slate-300, .text-slate-100 {
+  color: #475569 !important;
+}
+.text-slate-400, .text-slate-500 {
+  color: #64748b !important;
+}
+.text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+/* ── Borders ─────────────────────────────────────────────────────────────────── */
+[class*="border-white\/"],
+[class*="border-slate-800"],
+[class*="border-slate-700"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* ── Form Inputs ─────────────────────────────────────────────────────────────── 
+   The resume builder uses a JS variable `inp` with bg-slate-950/50.
+   These selectors catch all dark-themed inputs, selects, textareas. */
+input[class*="bg-slate-950"],
+input[class*="bg-slate-900"],
+select[class*="bg-slate-950"],
+select[class*="bg-slate-900"],
+textarea[class*="bg-slate-950"],
+textarea[class*="bg-slate-900"],
+input.glass,
+textarea.glass {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+input[class*="bg-slate-950"]::placeholder,
+input[class*="bg-slate-900"]::placeholder,
+textarea[class*="bg-slate-950"]::placeholder,
+textarea[class*="bg-slate-900"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+input[class*="bg-slate-950"]:focus,
+input[class*="bg-slate-900"]:focus,
+select[class*="bg-slate-950"]:focus,
+select[class*="bg-slate-900"]:focus,
+textarea[class*="bg-slate-950"]:focus,
+textarea[class*="bg-slate-900"]:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Select dropdown arrow color */
+select[class*="bg-slate-950"],
+select[class*="bg-slate-900"] {
+  color-scheme: light !important;
+}
+
+/* Legacy .input-field class */
+.input-field {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+.input-field::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ── Resume Builder Specific ─────────────────────────────────────────────────── */
+
+/* Section containers (bg-slate-900/50 border border-slate-800) */
+div[class*="bg-slate-900\/50"][class*="border"][class*="rounded-2xl"],
+div[class*="bg-slate-950\/40"][class*="rounded-xl"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Sticky header bar */
+div[class*="sticky"][class*="bg-\[#020617\]"] {
+  background-color: rgba(248, 250, 252, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Builder right panel */
+div[class*="bg-slate-950\/30"] {
+  background-color: #f1f5f9 !important;
+}
+
+/* ── AnalysisPanel SVG Ring ──────────────────────────────────────────────────── */
+/* Fix the ring track from dark to light */
+svg circle[stroke="#1e293b"] {
+  stroke: #e2e8f0 !important;
+}
+
+/* Fix the score text from white to dark */
+svg text[fill="white"] {
+  fill: #0f172a !important;
+}
+
+/* Fix the /100 label */
+svg text[fill="#94a3b8"] {
+  fill: #64748b !important;
+}
+
+/* ── Progress Bar Tracks ─────────────────────────────────────────────────────── */
+/* The DimBar component uses bg-slate-800 for the track — make it light */
+div.h-2[class*="bg-slate-800"],
+.h-2.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+
+/* XP bar in profile gamification card — keep visible */
+div[class*="bg-white\/10"] {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ── Buttons & Interactive Preservation ──────────────────────────────────────── 
+   CRITICAL: Gradient buttons, primary buttons, and badges must keep their colors */
+
+/* Primary / gradient buttons — preserve white text */
+[class*="bg-gradient-to-r"][class*="from-blue-600"],
+[class*="bg-gradient-to-r"][class*="from-blue-600"] *,
+[class*="bg-gradient-to-r"][class*="from-indigo-600"],
+[class*="bg-gradient-to-r"][class*="from-indigo-600"] *,
+[class*="bg-gradient-to-br"][class*="from-indigo-600"],
+[class*="bg-gradient-to-br"][class*="from-indigo-600"] *,
+.bg-blue-600,
+.bg-blue-600 *,
+button[class*="bg-gradient"],
+button[class*="bg-gradient"] * {
+  color: #ffffff !important;
+}
+
+/* Active sidebar nav items */
+a[class*="bg-gradient-to-r"][class*="from-blue-600"],
+a[class*="bg-gradient-to-r"][class*="from-blue-600"] * {
+  color: #ffffff !important;
+}
+
+/* Header buttons with border (Import Profile, Preview) */
+button[class*="border-slate-700"] {
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+button[class*="border-slate-700"]:hover {
+  border-color: #3b82f6 !important;
+  color: #1e40af !important;
+}
+
+/* The builder back button */
+button[class*="hover\\:bg-white\\/5"] {
+  color: #64748b !important;
+}
+button[class*="hover\\:bg-white\\/5"]:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Role selection buttons — active state needs white text */
+button[class*="bg-blue-600"][class*="border-blue-500"] {
+  color: #ffffff !important;
+}
+
+/* Inactive role buttons */
+button[class*="bg-slate-900\/50"][class*="border-slate-800"] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+button[class*="bg-slate-900\/50"][class*="border-slate-800"]:hover {
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* File/Text mode toggle buttons */
+div[class*="bg-slate-900"][class*="rounded-lg"] {
+  background-color: #e2e8f0 !important;
+}
+button[class*="bg-slate-800"][class*="shadow-sm"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dashed add buttons */
+button[class*="border-dashed"][class*="border-slate-700"] {
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+button[class*="border-dashed"][class*="border-slate-700"]:hover {
+  border-color: #3b82f6 !important;
+  color: #3b82f6 !important;
+  background-color: #eff6ff !important;
+}
+
+/* File upload drop zone */
+div[class*="border-dashed"][class*="border-slate-800"] {
+  border-color: #cbd5e1 !important;
+}
+div[class*="border-dashed"][class*="border-slate-800"]:hover {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff !important;
+}
+
+/* ── Profile Gamification Card ───────────────────────────────────────────────── 
+   The gradient card should keep its purple gradient & white text */
+div[class*="bg-gradient-to-br"][class*="from-indigo-600"],
+div[class*="bg-gradient-to-br"][class*="from-indigo-600"] * {
+  color: #ffffff !important;
+}
+div[class*="bg-gradient-to-br"][class*="from-indigo-600"] .text-indigo-100 {
+  color: rgba(199, 210, 254, 1) !important;
+}
+div[class*="bg-gradient-to-br"][class*="from-indigo-600"] {
+  background-image: linear-gradient(to bottom right, #4f46e5, #7c3aed) !important;
+  background-color: transparent !important;
+}
+
+/* ── Colored Badges & Tags ───────────────────────────────────────────────────── */
+/* Keep colored text on colored badge backgrounds */
+.text-blue-400 { color: #3b82f6 !important; }
+.text-violet-400 { color: #8b5cf6 !important; }
+.text-emerald-400 { color: #34d399 !important; }
+.text-yellow-400 { color: #fbbf24 !important; }
+.text-red-400 { color: #f87171 !important; }
+.text-rose-400 { color: #fb7185 !important; }
+.text-pink-400 { color: #f472b6 !important; }
+.text-indigo-400 { color: #818cf8 !important; }
+.text-orange-400 { color: #fb923c !important; }
+
+/* ── Text Gradient ───────────────────────────────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(135deg, #1e40af 0%, #4338ca 50%, #6d28d9 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* The ResumeAI Builder header gradient text */
+h1[class*="bg-gradient-to-r"][class*="bg-clip-text"] {
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* ── Loading Spinners ────────────────────────────────────────────────────────── */
+div[class*="border-blue-500"][class*="animate-spin"],
+div[class*="border-t-blue-500"][class*="animate-spin"] {
+  border-color: rgba(59, 130, 246, 0.2) !important;
+  border-top-color: #3b82f6 !important;
+}
+
+/* ── Error / Alert Boxes ─────────────────────────────────────────────────────── */
+div[class*="bg-red-500\/10"] {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+div[class*="bg-rose-500\/10"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb { 
+  background: #cbd5e1 !important;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: #94a3b8 !important; 
+}
+
+/* ── Print Styles ────────────────────────────────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #resume-print-content, #resume-print-content * {
+    visibility: visible !important;
+  }
+  #resume-print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0 !important;
+    padding: 30px !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   IMMERSIVE NIRAL AI DARK THEME PRESERVATION
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.niral-ai-container {
+  background-color: #090d16 !important;
+  background-image: 
+    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 10% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 50%) !important;
+  color: #f8fafc !important;
+}
+
+.niral-ai-container *,
+.niral-ai-container h1,
+.niral-ai-container h2,
+.niral-ai-container h3,
+.niral-ai-container h4,
+.niral-ai-container p,
+.niral-ai-container span,
+.niral-ai-container div {
+  color: #e2e8f0 !important;
+}
+
+.niral-ai-header {
+  background-color: rgba(11, 17, 30, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.niral-ai-header h1 {
+  color: #ffffff !important;
+}
+
+.niral-ai-header button {
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: transparent !important;
+}
+
+.niral-ai-header button:hover {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.niral-ai-user-bubble {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.4) !important;
+}
+
+.niral-ai-user-bubble * {
+  color: #ffffff !important;
+}
+
+.niral-ai-assistant-bubble {
+  background-color: rgba(17, 24, 39, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px 0 rgba(99, 102, 241, 0.05) !important;
+}
+
+.niral-ai-assistant-bubble strong {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.niral-ai-thinking-bubble {
+  background-color: rgba(17, 24, 39, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+.niral-ai-suggestions button {
+  background-color: rgba(17, 24, 39, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.niral-ai-suggestions button:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: #60a5fa !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+}
+
+.niral-ai-input-container {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(9, 13, 22, 0.8) !important;
+}
+
+.niral-ai-textarea {
+  background-color: rgba(17, 24, 39, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.niral-ai-textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+.niral-ai-textarea::placeholder {
+  color: #4b5563 !important;
+}
+
+.niral-ai-send-btn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+.niral-ai-send-btn:hover:not(:disabled) {
+  background-color: #3b82f6 !important;
+  transform: scale(1.02) !important;
+  box-shadow: 0 6px 20px -3px rgba(59, 130, 246, 0.5) !important;
+}
+
+.niral-ai-input-container label {
+  color: #64748b !important;
+  transition: all 0.2s ease !important;
+}
+
+.niral-ai-input-container label:hover {
+  color: #60a5fa !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ── Premium Card Design System ──────────────────────────────────────────────── */
+.dashboard-dashed-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border: 2px dashed #cbd5e1 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02) !important;
+}
+
+.dashboard-dashed-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.dashboard-dashed-card:hover {
+  transform: translateY(-4px);
+  border: 2px dashed #3b82f6 !important;
+  box-shadow: 0 20px 40px -15px rgba(59, 130, 246, 0.1) !important;
+}
+
+.premium-glow-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.premium-glow-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}

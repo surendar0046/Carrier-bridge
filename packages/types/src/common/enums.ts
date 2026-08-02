@@ -1,0 +1,77 @@
+export enum UserRole {
+  STUDENT = 'STUDENT',
+  MENTOR = 'MENTOR',
+  EMPLOYER = 'EMPLOYER',
+  ADMIN = 'ADMIN',
+}
+
+export enum JobType {
+  FULL_TIME = 'FULL_TIME',
+  PART_TIME = 'PART_TIME',
+  INTERNSHIP = 'INTERNSHIP',
+  CONTRACT = 'CONTRACT',
+  FREELANCE = 'FREELANCE',
+}
+
+export enum ApplicationStatus {
+  PENDING = 'PENDING',
+  REVIEWING = 'REVIEWING',
+  INTERVIEW = 'INTERVIEW',
+  OFFERED = 'OFFERED',
+  REJECTED = 'REJECTED',
+  WITHDRAWN = 'WITHDRAWN',
+}
+
+export enum CourseLevel {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+}
+
+export enum SessionStatus {
+  SCHEDULED = 'SCHEDULED',
+  ONGOING = 'ONGOING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum MessageType {
+  TEXT = 'TEXT',
+  IMAGE = 'IMAGE',
+  FILE = 'FILE',
+  VOICE = 'VOICE',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum NotificationType {
+  JOB_MATCH = 'JOB_MATCH',
+  APPLICATION_UPDATE = 'APPLICATION_UPDATE',
+  MENTOR_MESSAGE = 'MENTOR_MESSAGE',
+  COURSE_UPDATE = 'COURSE_UPDATE',
+  ACHIEVEMENT = 'ACHIEVEMENT',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum AIActionType {
+  JOB_SEARCH = 'JOB_SEARCH',
+  RESUME_REVIEW = 'RESUME_REVIEW',
+  INTERVIEW_PREP = 'INTERVIEW_PREP',
+  SKILL_ASSESSMENT = 'SKILL_ASSESSMENT',
+  CAREER_GUIDANCE = 'CAREER_GUIDANCE',
+  MENTOR_MATCH = 'MENTOR_MATCH',
+}
+
+export enum Theme {
+  LIGHT = 'LIGHT',
+  DARK = 'DARK',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum Language {
+  EN = 'en',
+  HI = 'hi',
+  TA = 'ta',
+  TE = 'te',
+  BN = 'bn',
+  MR = 'mr',
+}

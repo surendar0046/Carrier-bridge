@@ -10,17 +10,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { profile, fetchProfile } = useUserStore();
   const { logout, isAuthenticated, isInitialized } = useAuthStore();
   const [showLogout, setShowLogout] = React.useState(false);
+  // Track whether we've already fetched for this auth session to avoid looping
+  const fetchedForSession = React.useRef(false);
 
   useEffect(() => {
     if (!isInitialized) return;
     if (!isAuthenticated) {
+      // Reset so the next user who logs in triggers a fresh fetch
+      fetchedForSession.current = false;
       router.replace('/login');
       return;
     }
-    if (!profile) {
+    if (!fetchedForSession.current) {
+      fetchedForSession.current = true;
       fetchProfile();
     }
-  }, [isInitialized, isAuthenticated, profile, fetchProfile, router]);
+  }, [isInitialized, isAuthenticated, fetchProfile, router]);
 
   // Show full-screen spinner while Firebase auth is resolving
   if (!isInitialized || !isAuthenticated) {

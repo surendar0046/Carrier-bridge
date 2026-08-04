@@ -13,7 +13,7 @@ interface JobsState {
   total: number;
   realTimeJobs: Job[];
   fetchJobs: (filters?: JobFilter) => Promise<void>;
-  searchRealTimeJobs: (query: string) => Promise<void>;
+  searchRealTimeJobs: (query: string, page?: number, limit?: number, titleFilter?: string) => Promise<void>;
   fetchFeaturedJobs: () => Promise<void>;
   fetchApplications: () => Promise<void>;
   selectJob: (job: Job | null) => void;
@@ -43,10 +43,10 @@ export const useJobsStore = create<JobsState>()((set, get) => ({
     }
   },
 
-  searchRealTimeJobs: async (query) => {
+  searchRealTimeJobs: async (query, page = 1, limit = 20, titleFilter = '') => {
     set({ isLoading: true, error: null });
     try {
-      const jobs = await realTimeJobService.searchJobs(query);
+      const jobs = await realTimeJobService.searchJobs(query, page, limit, titleFilter);
       set({ realTimeJobs: jobs, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });

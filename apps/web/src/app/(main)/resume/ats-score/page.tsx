@@ -7,8 +7,8 @@ import {
   Zap, 
   Loader2
 } from 'lucide-react';
-import { cn } from '@career-bridge/utils';
 import { ROLES } from '../builder/useResumeStore';
+import RoleCombobox from '../builder/RoleCombobox';
 import AnalysisPanel, { AnalysisResult } from '../builder/AnalysisPanel';
 import { env } from '@career-bridge/services';
 
@@ -100,24 +100,22 @@ export default function ATSScorePage() {
             <div className="glass-card p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 font-bold">1</div>
-                <h2 className="text-xl font-bold">Target Career Role</h2>
+                <div>
+                  <h2 className="text-xl font-bold">Target Career Role</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Search from {ROLES.length}+ roles or type your own custom role</p>
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {ROLES.map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setTargetRole(role)}
-                    className={cn(
-                      "px-4 py-3 rounded-xl text-xs font-bold transition-all border",
-                      targetRole === role 
-                        ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20" 
-                        : "bg-slate-100 border-slate-200 text-slate-600 hover:border-slate-300"
-                    )}
-                  >
-                    {role}
-                  </button>
-                ))}
-              </div>
+              <RoleCombobox
+                value={targetRole}
+                onChange={setTargetRole}
+                variant="light"
+                placeholder="Search (e.g. SOC Analyst, Cloud Security Engineer, ML Engineer)..."
+              />
+              {targetRole && (
+                <div className="mt-3 inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                  <span>🎯</span> {targetRole}
+                </div>
+              )}
             </div>
 
             {/* Step 2: Content Input */}

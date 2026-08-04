@@ -6,21 +6,15 @@ import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { fetchFeaturedJobs, featuredJobs, applications, fetchApplications } = useJobsStore();
-  const { profile, fetchProfile } = useUserStore();
+  const { profile, activeRole, updateActiveRole, fetchProfile } = useUserStore();
   const { profile: gamProfile, fetchProfile: fetchGam } = useGamificationStore();
   const { sessions, fetchMySessions } = useMentorStore();
   const { isAuthenticated } = useAuthStore();
   const [loaded, setLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'network'>('overview');
+  const [isEditingRole, setIsEditingRole] = useState(false);
+  const [newRole, setNewRole] = useState('');
+  
   const router = useRouter();
-
-  const professionals = [
-    { name: 'Arjun Mehta', role: 'Staff Engineer at Microsoft', avatar: 'https://ui-avatars.com/api/?name=Arjun+Mehta&background=random', match: 98 },
-    { name: 'Sneha Reddy', role: 'Product Manager at Amazon', avatar: 'https://ui-avatars.com/api/?name=Sneha+Reddy&background=random', match: 94 },
-    { name: 'Vikram Singh', role: 'Data Scientist at Google', avatar: 'https://ui-avatars.com/api/?name=Vikram+Singh&background=random', match: 91 },
-    { name: 'Kavya Nair', role: 'Full Stack Lead at Flipkart', avatar: 'https://ui-avatars.com/api/?name=Kavya+Nair&background=random', match: 89 },
-  ];
-
   const fetchedRef = React.useRef(false);
 
   useEffect(() => {
@@ -101,29 +95,13 @@ export default function DashboardPage() {
             <p className="text-slate-500 font-medium">Your career trajectory is looking promising today.</p>
           </div>
           <div className="flex items-center gap-4">
-             <div className="flex bg-slate-200 p-1 rounded-2xl border border-slate-300">
-                <button 
-                  onClick={() => setActiveTab('overview')}
-                  className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  Overview
-                </button>
-                <button 
-                  onClick={() => setActiveTab('network')}
-                  className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'network' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  My Network
-                </button>
-             </div>
              <Link href="/ai-copilot" className="btn-primary flex items-center gap-2 py-2.5">
                <span className="text-lg">🤖</span> Ask AI
              </Link>
           </div>
         </div>
 
-        {activeTab === 'overview' ? (
-          <>
-            {/* Stats Grid */}
+        {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
               {stats.map((stat, idx) => (
                 <div key={stat.label} className={`bg-gradient-to-br ${stat.color} rounded-[2rem] p-6 text-white ${stat.shadow} shadow-2xl transition-transform hover:scale-[1.03] duration-300 animate-float`} style={{ animationDelay: `${idx * 0.5}s` }}>
@@ -143,8 +121,49 @@ export default function DashboardPage() {
                 <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm premium-glow-card">
                   <div className="flex justify-between items-end mb-6">
                     <div>
-                      <div className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-2">Current Status</div>
-                      <h3 className="text-2xl font-bold text-slate-900">Level {gamProfile?.level || 0} Professional</h3>
+                      <div className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-2">Current Career Path</div>
+                      {isEditingRole ? (
+                        <div className="flex items-center gap-2 mt-1">
+                           <input 
+                             type="text" 
+                             value={newRole} 
+                             onChange={e => setNewRole(e.target.value)} 
+                             className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-500" 
+                             placeholder="e.g. Data Scientist" 
+                             autoFocus
+                           />
+                           <button 
+                             onClick={() => { 
+                               if (newRole.trim()) { 
+                                 updateActiveRole(newRole.trim()); 
+                               } 
+                               setIsEditingRole(false); 
+                             }} 
+                             className="bg-blue-600 hover:bg-blue-700 transition-colors text-white text-xs px-3 py-2 rounded-lg font-bold"
+                           >
+                             Save
+                           </button>
+                           <button 
+                             onClick={() => setIsEditingRole(false)} 
+                             className="text-slate-500 hover:text-slate-700 text-xs px-2 font-bold"
+                           >
+                             Cancel
+                           </button>
+                        </div>
+                      ) : (
+                        <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                           {activeRole || 'Not Selected'}
+                           <button 
+                             onClick={() => { 
+                               setNewRole(activeRole || ''); 
+                               setIsEditingRole(true); 
+                             }} 
+                             className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1 rounded-md border border-blue-200"
+                           >
+                             ✎ Edit Role
+                           </button>
+                        </h3>
+                      )}
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-black text-slate-800">{gamProfile?.xp || 0}</span>
@@ -233,43 +252,8 @@ export default function DashboardPage() {
                     </Link>
                   ))}
                 </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-center mb-8 px-2">
-              <h3 className="text-3xl font-black text-slate-900">Recommended <span className="text-gradient">Connections</span> 🌍</h3>
-              <button className="bg-[#0077b5] text-white font-bold px-6 py-2 rounded-xl text-xs flex items-center gap-2">
-                 Sync LinkedIn
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {professionals.map((pro) => (
-                <div key={pro.name} className="bg-white border border-slate-200 rounded-[2rem] p-8 text-center group shadow-sm hover:border-slate-300 transition-all premium-glow-card">
-                  <div className="relative mb-6 mx-auto w-24">
-                    <img src={pro.avatar} alt={pro.name} className="w-24 h-24 rounded-[2rem] shadow-md border border-slate-100 group-hover:scale-105 transition-transform" />
-                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded-lg">
-                      {pro.match}%
-                    </div>
-                  </div>
-                  <h4 className="font-bold text-lg text-slate-900 mb-1">{pro.name}</h4>
-                  <p className="text-slate-500 text-xs font-bold mb-6 line-clamp-1">{pro.role}</p>
-                  <button className="w-full btn-primary py-2.5 text-xs">Connect</button>
-                </div>
-              ))}
-            </div>
-            <div className="mt-12 dashboard-dashed-card rounded-[2rem] p-12 text-center shadow-sm">
-              <div className="text-5xl mb-6">🤝</div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Expand Your Horizons</h3>
-              <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">Our AI analyzes your career goals to suggest mentors and peers who can accelerate your growth.</p>
-              <div className="flex justify-center gap-4">
-                <button className="bg-slate-100 hover:bg-slate-200 border border-slate-300 px-8 py-3 rounded-2xl text-sm font-bold text-slate-700 transition-all">Search Professionals</button>
-                <button className="btn-primary px-8 py-3 rounded-2xl text-sm font-bold">Join Community Groups</button>
-              </div>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

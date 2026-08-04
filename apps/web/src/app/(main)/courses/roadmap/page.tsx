@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { roadmapService } from '@career-bridge/services';
 const { generatePersonalizedRoadmap } = roadmapService;
+import { useUserStore } from '@career-bridge/store';
 import { SkillRoadmap, RoadmapNode } from '@career-bridge/types';
 import { cn } from '@career-bridge/utils';
 
@@ -36,11 +37,35 @@ export default function RoadmapPage() {
     restDelta: 0.001
   });
 
+  const { profile, activeRole, fetchProfile } = useUserStore();
+
   useEffect(() => {
-    // In a real app, fetch this based on user's recommended role
-    const rdm = generatePersonalizedRoadmap("Full Stack Developer");
+    if (!profile) {
+      fetchProfile();
+    }
+  }, [profile, fetchProfile]);
+
+  useEffect(() => {
+    // Determine the user's role from their specific prefs or use generic fallback
+    let role = activeRole;
+    if (!role && profile?.email) {
+      const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
+      if (prefsStr) {
+        const prefs = JSON.parse(prefsStr);
+        role = prefs.activeRole || prefs.recommendation?.role;
+      }
+    }
+    if (!role) {
+      const stored = localStorage.getItem('cb_recommendation');
+      if (stored) {
+        try {
+          role = JSON.parse(stored).role;
+        } catch { /* ignore */ }
+      }
+    }
+    const rdm = generatePersonalizedRoadmap(role || "Full Stack Developer");
     setRoadmap(rdm);
-  }, []);
+  }, [profile, activeRole]);
 
   if (!roadmap) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center" ref={containerRef}>

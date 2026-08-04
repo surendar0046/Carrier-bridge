@@ -34,7 +34,7 @@ export default function QuizPage() {
   const [direction, setDirection] = useState(1); // For slide animations
 
   const { isAuthenticated, isInitialized } = useAuthStore();
-  const { profile, fetchProfile, updateProfile } = useUserStore();
+  const { profile, fetchProfile, updateProfile, updateActiveRole } = useUserStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -102,7 +102,17 @@ export default function QuizPage() {
 
   const handleFinish = async () => {
     if (recommendation) {
-      // Persist to localStorage so the roadmap page can read it
+      if (profile?.email) {
+        const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
+        const prefs = prefsStr ? JSON.parse(prefsStr) : {};
+        prefs.recommendation = recommendation;
+        prefs.activeRole = recommendation.role;
+        localStorage.setItem(`cb_prefs_${profile.email}`, JSON.stringify(prefs));
+        if (updateActiveRole) {
+          updateActiveRole(recommendation.role);
+        }
+      }
+      // Persist to localStorage so the roadmap page can read it (fallback)
       localStorage.setItem('cb_recommendation', JSON.stringify(recommendation));
       router.push('/roadmap');
     }

@@ -1,62 +1,40 @@
-import axios from 'axios';
-import { env } from '@career-bridge/config';
-import { Job, JobType } from '@career-bridge/types';
+import { Job } from '@career-bridge/types';
 
+// ── Client-side real-time job service ─────────────────────────────────────────
+// Calls /api/jobs (Next.js proxy) — keeps API key secure on the server.
 export const realTimeJobService = {
-  async searchJobs(query: string = 'Software Developer in India', page: number = 1): Promise<Job[]> {
-    const options = {
-      method: 'GET',
-      url: `https://${env.rapidApi.host}/search`,
-      params: {
-        query: query,
-        page: page.toString(),
-        num_pages: '1'
-      },
-      headers: {
-        'x-rapidapi-key': env.rapidApi.key,
-        'x-rapidapi-host': env.rapidApi.host
-      }
-    };
-
+  async searchJobs(
+    query: string = 'Software Engineer',
+    page: number = 1,
+    limit: number = 20,
+    /** Comma-separated title match keywords — used for server-side pre-filtering */
+    titleFilter: string = '',
+  ): Promise<Job[]> {
     try {
-      const response = await axios.request(options);
-      const data = response.data.data || [];
-      
-      return data.map((j: any) => ({
-        id: j.job_id,
-        title: j.job_title,
-        company: j.employer_name,
-        companyLogo: j.employer_logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(j.employer_name)}&background=random`,
-        location: `${j.job_city || ''} ${j.job_country || ''}`.trim() || 'Remote',
-        type: this.mapJobType(j.job_employment_type),
-        salary: {
-          min: j.job_min_salary || 0,
-          max: j.job_max_salary || 0,
-          currency: j.job_salary_currency || 'USD',
-          period: j.job_salary_period || 'year'
-        },
-        description: j.job_description,
-        requirements: [],
-        skills: [],
-        postedAt: j.job_posted_at_datetime_utc || new Date().toISOString(),
-        applicants: 0,
-        matchScore: Math.floor(Math.random() * 30) + 70, // Mock match score
-        isRemote: j.job_is_remote || false,
-        isFeatured: false,
-        applyUrl: j.job_apply_link
-      }));
-    } catch (error) {
-      console.error('RapidAPI JSearch Error:', error);
+      const params = new URLSearchParams({
+        q:     query,
+        page:  String(page),
+        limit: String(limit),
+      });
+      if (titleFilter) params.set('titleFilter', titleFilter);
+
+      const res = await fetch(`/api/jobs?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Search failed');
+
+      return (data.jobs || []) as Job[];
+    } catch (error: any) {
+      console.error('[realTimeJobService] searchJobs failed:', error.message);
       return [];
     }
   },
-
-  mapJobType(type: string): JobType {
-    const t = type?.toLowerCase() || '';
-    if (t.includes('full')) return JobType.FULL_TIME;
-    if (t.includes('part')) return JobType.PART_TIME;
-    if (t.includes('contract')) return JobType.CONTRACT;
-    if (t.includes('intern')) return JobType.INTERNSHIP;
-    return JobType.FULL_TIME;
-  }
 };

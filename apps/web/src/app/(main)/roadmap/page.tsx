@@ -5,18 +5,45 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Recommendation } from '@career-bridge/ai';
 import { ROLE_ROADMAPS, ACCENT_COLORS } from '@/data/roadmapData';
+import { useUserStore } from '@career-bridge/store';
 
 export default function RoadmapPage() {
   const [rec, setRec] = useState<Recommendation | null>(null);
   const [activePhase, setActivePhase] = useState(0);
+  const { profile, activeRole, fetchProfile } = useUserStore();
   const router = useRouter();
 
   useEffect(() => {
+    if (!profile) {
+      fetchProfile();
+    }
+  }, [profile, fetchProfile]);
+
+  useEffect(() => {
     try {
-      const stored = localStorage.getItem('cb_recommendation');
-      if (stored) setRec(JSON.parse(stored));
+      let currentRec = null;
+      if (profile?.email) {
+        const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
+        if (prefsStr) {
+           const prefs = JSON.parse(prefsStr);
+           if (prefs.recommendation) {
+               currentRec = prefs.recommendation;
+           }
+        }
+      }
+      
+      if (!currentRec) {
+        const stored = localStorage.getItem('cb_recommendation');
+        if (stored) currentRec = JSON.parse(stored);
+      }
+      
+      if (currentRec && activeRole) {
+          currentRec = { ...currentRec, role: activeRole };
+      }
+      
+      if (currentRec) setRec(currentRec);
     } catch { /* ignore */ }
-  }, []);
+  }, [profile, activeRole]);
 
   if (!rec) {
     return (

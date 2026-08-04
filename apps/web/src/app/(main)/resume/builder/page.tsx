@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { useResumeStore, ROLES, ResumeFormData } from './useResumeStore';
+import { useResumeStore, ResumeFormData } from './useResumeStore';
+import RoleCombobox from './RoleCombobox';
 import { useUserStore } from '@career-bridge/store';
 import AnalysisPanel, { AnalysisResult } from './AnalysisPanel';
 import PreviewModal from './PreviewModal';
@@ -148,10 +149,17 @@ export default function ResumeBuilderPage() {
 
           {/* Target Role */}
           <Section title="Target Role" icon="🎯">
-            <select value={f.targetRole} onChange={e => r.setForm(prev => ({ ...prev, targetRole: e.target.value }))}
-              className={inp + ' cursor-pointer'}>
-              {ROLES.map(role => <option key={role} value={role}>{role}</option>)}
-            </select>
+            <RoleCombobox
+              value={f.targetRole}
+              onChange={(role) => r.setForm(prev => ({ ...prev, targetRole: role }))}
+              variant="light"
+              placeholder="Search role or type your own (e.g. Cloud Security, SOC Analyst)..."
+            />
+            {f.targetRole && (
+              <p className="mt-2 text-xs text-slate-500">
+                Selected: <span className="font-semibold text-blue-600">{f.targetRole}</span>
+              </p>
+            )}
           </Section>
 
           {/* Personal Info */}

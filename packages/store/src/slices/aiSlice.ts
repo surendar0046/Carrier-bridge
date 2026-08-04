@@ -22,66 +22,71 @@ interface AIState {
 const WELCOME_MESSAGE: AIMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "👋 Hi there! I'm **Niral AI**, your personal career assistant.\n\nI'm here to help you with:\n- 💼 Job searching & applications\n- 📝 Resume reviews & ATS optimization\n- 🎯 Interview preparation & practice\n- 📊 Skill gap analysis & learning roadmaps\n- 🤝 Mentorship & networking\n\nHow can I help you today?",
+  content: "👋 Hi! I'm **Niral AI** — your intelligent career & coding assistant.\n\nI can help you with **anything**:\n- 💼 Job searching, resumes & interview prep\n- 💻 Coding, debugging & code reviews (any language)\n- 🧠 General knowledge, explanations & research\n- 📊 Skill roadmaps, learning paths & career planning\n- ✍️ Writing, emails, cover letters & more\n\nJust ask me anything — I work like ChatGPT! 🚀",
   timestamp: new Date().toISOString(),
 };
 
-// Smart local fallback responses that are polite and contextual
+// Smart local fallback responses — used when the AI API is unavailable
 const getPoliteResponse = (message: string): string => {
   const lower = message.toLowerCase();
 
   // Greetings
   if (/^(hi|hello|hey|good morning|good evening|good afternoon|howdy|sup|hola)/i.test(lower.trim())) {
-    return "Hello! 😊 Welcome to **Niral AI**.\n\nI'm so glad you're here! I'm your dedicated career assistant, ready to help with anything career-related.\n\nHere's what I can do for you:\n1. **Find jobs** that match your skills\n2. **Review your resume** for ATS compatibility\n3. **Prepare you for interviews** with practice questions\n4. **Analyze skill gaps** and suggest learning paths\n5. **Connect you with mentors** in your field\n\nWhat would you like to explore first?";
+    return "Hello! 😊 I'm **Niral AI** — your intelligent career & coding assistant.\n\nI can help you with:\n- 💼 Job searching, resumes & interview prep\n- 💻 Coding, debugging & code reviews (any language)\n- 🧠 General knowledge & research\n- 📊 Skill roadmaps & career planning\n\nWhat would you like to explore first?";
   }
 
   // Thank you
   if (/thank|thanks|thx|appreciate/i.test(lower)) {
-    return "You're very welcome! 😊 I'm always happy to help.\n\nIs there anything else I can assist you with? Whether it's about jobs, resumes, interviews, or career planning — I'm here for you! 💪";
+    return "You're very welcome! 😊 Happy to help anytime.\n\nFeel free to ask me anything — coding, career advice, or any other question you have! 💪";
   }
 
   // How are you
   if (/how are you|how('s| is) it going|what's up/i.test(lower)) {
-    return "I'm doing great, thank you for asking! 😊\n\nI'm always energized and ready to help you with your career goals.\n\nWhat's on your mind today? I'd love to assist with job searching, resume building, interview prep, or anything else career-related!";
+    return "I'm doing great, thank you for asking! 😊\n\nAlways ready to help. What's on your mind today?";
   }
 
   // Who are you
   if (/who are you|what are you|tell me about yourself|your name/i.test(lower)) {
-    return "I'm **Niral AI** — your personal AI-powered career assistant! 🤖✨\n\nI was designed to help professionals like you navigate their career journey with confidence.\n\nHere's what I specialize in:\n- 🔍 **Job Matching** — Finding roles that fit your skills perfectly\n- 📝 **Resume Optimization** — Making your resume ATS-friendly\n- 🎯 **Interview Prep** — Practicing with real interview questions\n- 📊 **Skill Analysis** — Identifying gaps and recommending courses\n- 🤝 **Mentor Matching** — Connecting you with industry experts\n\nWhat would you like help with?";
+    return "I'm **Niral AI** 🤖✨ — a full-featured AI assistant built into CareerBridge.\n\nI work like ChatGPT and can help with:\n- 💻 **Coding & debugging** — Any language, any framework\n- 💼 **Career advice** — Jobs, resumes, interviews\n- 🧠 **General knowledge** — Explain anything\n- 📝 **Writing** — Emails, cover letters, docs\n- 📊 **Analysis** — Data, algorithms, concepts\n\nWhat would you like help with?";
+  }
+
+  // Coding / debugging
+  if (/code|debug|error|bug|function|class|array|loop|syntax|program|script|python|javascript|typescript|java|react|node|sql|api|fix|implement/i.test(lower)) {
+    return "I'd love to help with your code! 💻\n\n⚠️ *Note: I'm currently running in offline mode — the AI API is temporarily unavailable.*\n\nOnce reconnected, I can:\n- 🐛 **Debug errors** — paste your error and I'll diagnose it\n- ✍️ **Write code** — any language or framework\n- 🔍 **Review code** — suggest improvements and optimizations\n- 📚 **Explain concepts** — algorithms, patterns, architecture\n\nPlease try again in a moment for a full AI-powered response!";
   }
 
   // Jobs
   if (/job|work|position|opening|hiring|career|employ|opportunity|apply|application/i.test(lower)) {
-    return "Great question about jobs! 💼\n\nHere's how I can help you with your job search:\n\n1. **AI-Matched Jobs** — Our system analyzes your profile and matches you with the best opportunities\n2. **Real-Time Search** — Browse live job listings from across the web\n3. **Smart Filters** — Filter by Remote, Full-Time, Internship, or Contract\n4. **One-Click Apply** — Apply directly through our platform\n\n**Quick tip:** Make sure your profile skills are up-to-date for better match scores! 🎯\n\nWould you like me to help you search for specific roles, or would you prefer to optimize your profile first?";
+    return "Great question about jobs! 💼\n\nHere's how I can help with your job search:\n\n1. **AI-Matched Jobs** — Our system matches you with the best opportunities\n2. **Smart Filters** — Filter by Remote, Full-Time, Internship, or Contract\n3. **One-Click Apply** — Apply directly through our platform\n\n**Quick tip:** Keep your profile skills up-to-date for better match scores! 🎯";
   }
 
   // Resume
   if (/resume|cv|ats|curriculum vitae/i.test(lower)) {
-    return "Let's make your resume shine! 📝✨\n\nHere's what I recommend:\n\n1. **Use our Resume Builder** — Create a professional, ATS-optimized resume section by section\n2. **Get an ATS Score** — Paste your resume text to get an instant AI-powered score (0–100)\n3. **Keyword Analysis** — See which industry keywords you're missing\n\n**Pro tips for a strong resume:**\n- ✅ Add **quantified achievements** (e.g., \"Increased sales by 40%\")\n- ✅ Include **role-specific keywords** from job descriptions\n- ✅ Keep it to **1-2 pages** maximum\n- ✅ Use a **clean, ATS-friendly format**\n\nWould you like to build a new resume or analyze an existing one?";
+    return "Let's make your resume shine! 📝✨\n\n**Pro tips for a strong resume:**\n- ✅ Add **quantified achievements** (e.g., \"Increased sales by 40%\")\n- ✅ Include **role-specific keywords** from job descriptions\n- ✅ Keep it to **1-2 pages** maximum\n- ✅ Use a **clean, ATS-friendly format**\n\nUse our **Resume Builder** or get an **ATS Score** from the Resume tab!";
   }
 
   // Interview
   if (/interview|prepare|practice|question|behavioral|technical/i.test(lower)) {
-    return "Let's get you interview-ready! 🎯\n\nI can help you prepare in several ways:\n\n**Technical Interview Prep:**\n- Data Structures & Algorithms\n- System Design questions\n- Language-specific problems (React, Python, Java, etc.)\n\n**Behavioral Interview Prep:**\n- STAR method responses\n- Common HR questions\n- Situational judgment scenarios\n\n**Quick Practice Question:**\n> *\"Tell me about a challenging project you worked on and how you overcame obstacles.\"*\n\n**Tips for success:**\n- 🎤 Practice speaking your answers aloud\n- ⏱️ Keep answers under 2 minutes\n- 📊 Use specific numbers and results\n\nWhat type of interview would you like to practice for?";
+    return "Let's get you interview-ready! 🎯\n\n**Common Technical Questions:**\n- Explain the difference between `==` and `===`\n- What is a closure in JavaScript?\n- How does React's Virtual DOM work?\n- Explain RESTful API design principles\n\n**Behavioral Tips (STAR method):**\n- **S**ituation, **T**ask, **A**ction, **R**esult\n- Use specific numbers and outcomes\n\nWhat role are you interviewing for?";
   }
 
   // Skills
   if (/skill|learn|course|study|roadmap|gap|grow|development|training|certification/i.test(lower)) {
-    return "Let's accelerate your skill growth! 📊🚀\n\nHere's what I suggest:\n\n**Top In-Demand Skills for 2025:**\n1. **AI/Machine Learning** — Very high demand across industries\n2. **Cloud Computing** (AWS/Azure/GCP) — Essential for modern development\n3. **System Design** — Key for senior roles\n4. **TypeScript/React** — Frontend gold standard\n5. **Data Engineering** — Growing rapidly\n\n**How to get started:**\n- 📋 Visit our **Skill Roadmap** to see a personalized learning path\n- 🎓 Check out the **Learning Center** for curated courses\n- 📝 Take the **Weekly Assessment** to track progress\n\nWould you like me to recommend a learning roadmap for a specific role?";
+    return "Let's accelerate your skill growth! 📊🚀\n\n**Top In-Demand Skills for 2025-2026:**\n1. **AI/ML Engineering** — Highest demand\n2. **Cloud Computing** (AWS/Azure/GCP)\n3. **TypeScript & React** — Frontend gold standard\n4. **System Design** — Critical for senior roles\n5. **Data Engineering** — Growing fast\n\nVisit the **Skill Roadmap** section for a personalized learning path!";
   }
 
   // Mentor
   if (/mentor|guide|coach|advice|connect|network|professional/i.test(lower)) {
-    return "Mentorship can be a game-changer for your career! 🤝\n\nHere's how our mentorship program works:\n\n1. **AI-Powered Matching** — We match you with mentors based on your goals and interests\n2. **Expert Mentors** — Industry professionals from top companies (Google, Microsoft, Amazon, etc.)\n3. **Flexible Sessions** — Book 1-on-1 video calls at times that work for you\n4. **Diverse Expertise** — Engineering, Product, Design, Data Science, and more\n\n**Benefits of having a mentor:**\n- 🎯 Get insider industry insights\n- 📈 Accelerate your career growth\n- 🔗 Expand your professional network\n- 💡 Receive personalized advice\n\nWould you like me to find mentors in your field of interest?";
+    return "Mentorship can be a game-changer! 🤝\n\n**Our Mentorship Program:**\n1. AI-Powered matching with industry experts\n2. Mentors from Google, Microsoft, Amazon & more\n3. Flexible 1-on-1 video sessions\n4. Engineering, Product, Design, Data Science & more\n\nVisit the **Mentorship** section to find your perfect mentor!";
   }
 
-  // Help
+  // Help or capabilities
   if (/help|what can you do|feature|capable|assist/i.test(lower)) {
-    return "I'd love to help! Here's everything I can do for you: 😊\n\n**🔍 Job Search**\n- Find AI-matched jobs based on your profile\n- Search real-time listings across the web\n\n**📝 Resume**\n- Build professional resumes with our smart builder\n- Get instant ATS score and optimization tips\n\n**🎯 Interview Prep**\n- Practice technical and behavioral questions\n- Get feedback on your answers\n\n**📊 Skills & Learning**\n- Identify skill gaps for your target role\n- Get personalized learning roadmaps\n\n**🤝 Mentorship**\n- Match with industry professionals\n- Book 1-on-1 coaching sessions\n\nJust tell me what area you'd like to focus on, and I'll guide you step by step! 💪";
+    return "Here's everything I can help with: 😊\n\n**💻 Coding & Tech**\n- Write & debug code in any language\n- Explain algorithms & data structures\n- Code reviews & optimization\n\n**💼 Career**\n- Job search & AI matching\n- Resume building & ATS scoring\n- Interview preparation\n\n**🧠 General AI**\n- Answer any question\n- Research & explanations\n- Writing & communication\n\nJust ask me anything! 🚀";
   }
 
-  // Default - polite and helpful
-  return "That's a great question! 😊\n\nI'd love to help you with that. Could you tell me a bit more about what you're looking for?\n\nHere are some areas I can assist with:\n- 💼 **Job searching** — Finding the right opportunities\n- 📝 **Resume optimization** — Making your resume stand out\n- 🎯 **Interview preparation** — Getting ready for your big day\n- 📊 **Skill development** — Growing your professional skills\n- 🤝 **Mentorship** — Connecting with industry experts\n\nFeel free to ask me anything specific, and I'll do my best to provide helpful, actionable advice! 🚀";
+  // API unavailable default
+  return "⚠️ I'm currently in **offline mode** — the AI API is temporarily unavailable.\n\nI can still help with basic career questions! For full AI capabilities (coding help, debugging, detailed analysis), please try again in a moment.\n\n**What I can help with right now:**\n- 💼 Job searching tips\n- 📝 Resume advice\n- 🎯 Interview preparation\n- 📊 Skill development guidance";
 };
 
 export const useAIStore = create<AIState>()((set, get) => {

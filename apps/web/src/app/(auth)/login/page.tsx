@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '@career-bridge/store';
+import { useAuthStore, useUserStore } from '@career-bridge/store';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { login, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuthStore();
+  const { profile, fetchProfile } = useUserStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,15 +23,26 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
-      router.replace('/quiz');
+      if (!profile) {
+        fetchProfile();
+      } else {
+        const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
+        if (profile.role === 'professional') {
+          router.replace('/professional');
+        } else if (prefsStr) {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/quiz');
+        }
+      }
     }
-  }, [isInitialized, isAuthenticated, router]);
+  }, [isInitialized, isAuthenticated, profile, fetchProfile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
-    const ok = await login(email, password);
-    if (ok) router.push('/quiz');
+    await login(email, password);
+    // Redirection handled by useEffect once authenticated and profile loaded
   };
 
   if (!mounted) return <div className="min-h-screen bg-slate-50" />;

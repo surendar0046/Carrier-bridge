@@ -1,0 +1,205 @@
+'use client';
+import React, { useState } from 'react';
+
+const LEADERBOARD = [
+  { rank: 1, name: 'Dr. Meera Iyer', role: 'Staff Engineer, Google', avatar: 'https://ui-avatars.com/api/?name=Meera+Iyer&background=f59e0b&color=fff', points: 5420, answers: 234, resources: 18, badge: 'Diamond', streak: 45, level: 9 },
+  { rank: 2, name: 'Arjun Mehta', role: 'Senior SWE, Microsoft', avatar: 'https://ui-avatars.com/api/?name=Arjun+Mehta&background=3b82f6&color=fff', points: 4180, answers: 178, resources: 12, badge: 'Platinum', streak: 32, level: 8 },
+  { rank: 3, name: 'Kavya Nair', role: 'Full Stack Lead, Flipkart', avatar: 'https://ui-avatars.com/api/?name=Kavya+Nair&background=8b5cf6&color=fff', points: 3750, answers: 156, resources: 22, badge: 'Gold', streak: 28, level: 8 },
+  { rank: 4, name: 'You', role: 'Industry Professional', avatar: 'https://ui-avatars.com/api/?name=You&background=10b981&color=fff', points: 2840, answers: 98, resources: 14, badge: 'Silver', streak: 14, level: 7, isCurrentUser: true },
+  { rank: 5, name: 'Vikram Singh', role: 'Data Scientist, Google', avatar: 'https://ui-avatars.com/api/?name=Vikram+Singh&background=ef4444&color=fff', points: 2310, answers: 87, resources: 9, badge: 'Silver', streak: 11, level: 6 },
+  { rank: 6, name: 'Rohan Gupta', role: 'Backend Engineer, Swiggy', avatar: 'https://ui-avatars.com/api/?name=Rohan+Gupta&background=06b6d4&color=fff', points: 1920, answers: 64, resources: 7, badge: 'Bronze', streak: 8, level: 6 },
+  { rank: 7, name: 'Pooja Mehta', role: 'PM, Zomato', avatar: 'https://ui-avatars.com/api/?name=Pooja+Mehta&background=ec4899&color=fff', points: 1540, answers: 41, resources: 11, badge: 'Bronze', streak: 5, level: 5 },
+];
+
+const BADGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Diamond: { bg: '#e0f2fe', text: '#0284c7', border: '#7dd3fc' },
+  Platinum: { bg: '#f3f4f6', text: '#374151', border: '#d1d5db' },
+  Gold: { bg: '#fef3c7', text: '#d97706', border: '#fcd34d' },
+  Silver: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' },
+  Bronze: { bg: '#fef3c7', text: '#92400e', border: '#d97706' },
+};
+
+const BADGES_LIST = [
+  { name: 'Top Mentor', icon: '🏆', desc: 'Ranked in top 3 contributors', color: '#f59e0b', earned: true },
+  { name: 'Answer Guru', icon: '💡', desc: '100+ answers posted', color: '#3b82f6', earned: true },
+  { name: 'Resource Hero', icon: '📚', desc: '10+ resources shared', color: '#10b981', earned: true },
+  { name: '100 Answers', icon: '💬', desc: 'Answered 100 questions', color: '#8b5cf6', earned: true },
+  { name: 'Weekly Streak', icon: '🔥', desc: '7-day contribution streak', color: '#ef4444', earned: true },
+  { name: 'Community Star', icon: '⭐', desc: '500+ upvotes received', color: '#f59e0b', earned: false },
+  { name: 'Gold Badge', icon: '🥇', desc: 'Reach Gold tier', color: '#d97706', earned: false },
+  { name: 'Legend', icon: '🦋', desc: 'Rank #1 on leaderboard', color: '#6366f1', earned: false },
+];
+
+const RANK_ICONS = ['🥇', '🥈', '🥉'];
+
+export default function ReputationPage() {
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'badges' | 'history'>('leaderboard');
+
+  const HISTORY = [
+    { action: 'Answer accepted by Ravi Kumar', points: '+25', time: '2h ago', icon: '✅' },
+    { action: '8 upvotes on your answer about System Design', points: '+16', time: '4h ago', icon: '⬆️' },
+    { action: 'Resource "DSA Sheet" saved by 12 students', points: '+24', time: '6h ago', icon: '📌' },
+    { action: 'Practice test "JS Basics" completed by 5 students', points: '+15', time: '1d ago', icon: '📝' },
+    { action: 'Received Top Mentor badge', points: '+50', time: '2d ago', icon: '🏆' },
+    { action: '3 upvotes on your career tip post', points: '+6', time: '3d ago', icon: '❤️' },
+  ];
+
+  return (
+    <div className="p-8 max-w-6xl mx-auto space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">⭐ Reputation & Leaderboard</h1>
+        <p className="text-slate-500 mt-1 font-medium">Earn points, unlock badges, and climb the contributor leaderboard</p>
+      </div>
+
+      {/* My Rep Card */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl p-8 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
+        <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start lg:items-center">
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-3xl bg-white/20 flex items-center justify-center text-4xl font-black ring-4 ring-white/20">
+              7
+            </div>
+            <div>
+              <div className="text-xs font-black uppercase tracking-widest text-blue-200">Level 7 — Senior Mentor</div>
+              <div className="text-5xl font-black mt-1">2,840</div>
+              <div className="text-blue-200 text-sm mt-1">Reputation Points</div>
+            </div>
+          </div>
+          <div className="flex-1 lg:ml-8">
+            <div className="flex justify-between text-xs text-blue-200 mb-2">
+              <span>Progress to Level 8</span>
+              <span>2,840 / 4,000</span>
+            </div>
+            <div className="bg-white/20 rounded-full h-3">
+              <div className="bg-white rounded-full h-3 transition-all duration-1000" style={{ width: '71%' }} />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              {[
+                { label: 'Answers', value: '98' },
+                { label: 'Resources', value: '14' },
+                { label: 'Streak', value: '14d 🔥' },
+              ].map(s => (
+                <div key={s.label} className="bg-white/10 rounded-2xl p-3 text-center">
+                  <div className="text-xl font-black">{s.value}</div>
+                  <div className="text-[10px] text-blue-200">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <div className="px-5 py-3 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <div className="text-2xl mb-1">🥈</div>
+              <div className="text-sm font-black">Silver Badge</div>
+              <div className="text-[10px] text-blue-200">Current Tier</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 rounded-2xl w-fit" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+        {(['leaderboard', 'badges', 'history'] as const).map(t => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            className="px-5 py-2.5 rounded-xl text-xs font-bold capitalize transition-all duration-300"
+            style={activeTab === t ? { background: 'linear-gradient(135deg,#2563eb,#4f46e5)', color: 'white', boxShadow: '0 4px 15px rgba(79,70,229,0.3)' } : { color: '#64748b' }}>
+            {t === 'leaderboard' ? '🏆 Leaderboard' : t === 'badges' ? '🎖️ Badges' : '📋 Point History'}
+          </button>
+        ))}
+      </div>
+
+      {/* Leaderboard */}
+      {activeTab === 'leaderboard' && (
+        <div className="space-y-4">
+          {/* Top 3 Podium */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            {[LEADERBOARD[1], LEADERBOARD[0], LEADERBOARD[2]].map((l, i) => {
+              const positions = [2, 1, 3];
+              const pos = positions[i];
+              const heights = ['h-32', 'h-40', 'h-28'];
+              return (
+                <div key={l.rank} className={`flex flex-col items-center justify-end bg-white border border-slate-100 rounded-3xl pt-4 pb-5 px-4 ${heights[i]} transition-all hover:shadow-lg`}>
+                  <img src={l.avatar} alt={l.name} className={`rounded-2xl mb-2 ${pos === 1 ? 'w-14 h-14 ring-4 ring-yellow-400' : 'w-11 h-11'}`} />
+                  <div className="text-lg">{RANK_ICONS[pos - 1]}</div>
+                  <div className="text-xs font-black text-slate-800 text-center mt-1 truncate w-full text-center">{l.name.split(' ')[0]}</div>
+                  <div className="text-[10px] text-slate-400 font-semibold">{l.points.toLocaleString()} pts</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Full List */}
+          <div className="space-y-2">
+            {LEADERBOARD.map(l => {
+              const bc = BADGE_COLORS[l.badge];
+              return (
+                <div key={l.rank}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-md ${l.isCurrentUser ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                  <span className="text-xl w-8 text-center font-black text-slate-400">#{l.rank}</span>
+                  <img src={l.avatar} alt={l.name} className="w-10 h-10 rounded-xl flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-bold ${l.isCurrentUser ? 'text-blue-700' : 'text-slate-800'}`}>{l.name}</span>
+                      {l.isCurrentUser && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-2 py-0.5 rounded-full">YOU</span>}
+                    </div>
+                    <div className="text-[11px] text-slate-400">{l.role} · Lvl {l.level}</div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-slate-500">
+                    <span>💬 {l.answers}</span>
+                    <span>📚 {l.resources}</span>
+                    <span>🔥 {l.streak}d</span>
+                  </div>
+                  <span className="text-sm font-black text-slate-800">{l.points.toLocaleString()}</span>
+                  <span className="text-xs font-bold px-3 py-1.5 rounded-xl" style={{ background: bc.bg, color: bc.text, border: `1px solid ${bc.border}` }}>
+                    {l.badge}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Badges */}
+      {activeTab === 'badges' && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {BADGES_LIST.map(b => (
+            <div key={b.name}
+              className={`bg-white border rounded-3xl p-5 text-center transition-all hover:shadow-lg ${b.earned ? 'border-slate-100 hover:-translate-y-1' : 'border-slate-100 opacity-40 grayscale'}`}>
+              <div className="text-5xl mb-3">{b.icon}</div>
+              <div className="font-black text-slate-800 text-sm mb-1">{b.name}</div>
+              <div className="text-[11px] text-slate-400 leading-tight">{b.desc}</div>
+              {b.earned ? (
+                <span className="mt-3 inline-block text-[10px] font-black px-3 py-1 rounded-full text-white" style={{ background: b.color }}>
+                  ✓ Earned
+                </span>
+              ) : (
+                <span className="mt-3 inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-400">
+                  Locked
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* History */}
+      {activeTab === 'history' && (
+        <div className="bg-white border border-slate-100 rounded-3xl p-6 space-y-3">
+          <h3 className="font-black text-slate-800 mb-4">Recent Point Activity</h3>
+          {HISTORY.map((h, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
+              <span className="text-2xl">{h.icon}</span>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-slate-700">{h.action}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{h.time}</div>
+              </div>
+              <span className="text-sm font-black text-emerald-600">{h.points}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

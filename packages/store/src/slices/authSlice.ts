@@ -2,6 +2,25 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authService, mapAuthError } from '@career-bridge/services';
 
+// Track the last UID so we only wipe the user store when the account genuinely changes
+let _lastUid: string | null = null;
+
+const clearUserStoreIfUserChanged = (newUid: string | null) => {
+  if (typeof window === 'undefined') return;
+  if (_lastUid !== null && _lastUid !== newUid) {
+    // A different user just logged in — wipe the stale profile
+    localStorage.removeItem('career-bridge-user');
+  }
+  _lastUid = newUid;
+};
+
+const clearUserStoreOnLogout = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('career-bridge-user');
+  }
+  _lastUid = null;
+};
+
 interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
@@ -41,15 +60,17 @@ export const useAuthStore = create<AuthState>()(
             clearTimeout(timeout);
             if (user) {
               const token = await user.getIdToken();
-              // Sync to localStorage for HTTP Client to pick up
               if (typeof window !== 'undefined') {
                 localStorage.setItem('career_bridge_token', token);
               }
+              // Only wipe the persisted profile if a different user is logging in
+              clearUserStoreIfUserChanged(user.uid);
               set({ token, isAuthenticated: true, isInitialized: true });
             } else {
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('career_bridge_token');
               }
+              clearUserStoreOnLogout();
               set({ token: null, isAuthenticated: false, isInitialized: true });
             }
           });
@@ -90,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         authService.logout();
+        clearUserStoreOnLogout();
         set({ token: null, isAuthenticated: false });
       },
 

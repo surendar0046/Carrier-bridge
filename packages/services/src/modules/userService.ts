@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from '../firebase';
 import { UserProfile, UserRole } from '@career-bridge/types';
 
@@ -17,17 +17,62 @@ export const userService = {
 
     if (docSnap.exists()) {
       const data = docSnap.data();
+      // Prioritize Firestore name, but use Firebase Auth displayName as override
+      const name = user.displayName || data.name || user.email?.split('@')[0] || 'User';
       return {
-        id: user.uid,
-        email: user.email || '',
-        name: user.displayName || data.name || 'User',
         role: data.role || UserRole.STUDENT,
-        avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}`,
-        ...data
+        avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+        skills: [],
+        xp: 0,
+        level: 1,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        education: [],
+        experience: [],
+        certifications: [],
+        languages: [],
+        ...data,
+        // These must always come from Firebase Auth, not Firestore
+        id: user.uid,
+        email: user.email || data.email || '',
+        name,
       } as UserProfile;
     }
 
-    throw new Error('Profile not found');
+    // Firestore doc missing — build profile from Firebase Auth data and auto-create the doc
+    const name = user.displayName || user.email?.split('@')[0] || 'User';
+    const fallbackProfile: UserProfile = {
+      id: user.uid,
+      email: user.email || '',
+      name,
+      role: UserRole.STUDENT,
+      avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+      skills: [],
+      xp: 0,
+      level: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      education: [],
+      experience: [],
+      certifications: [],
+      languages: [],
+    };
+
+    // Auto-create the missing Firestore document so future fetches work
+    try {
+      await setDoc(docRef, {
+        uid: user.uid,
+        name,
+        email: user.email || '',
+        role: 'student',
+        createdAt: fallbackProfile.createdAt,
+        updatedAt: fallbackProfile.updatedAt,
+      });
+    } catch (e) {
+      console.warn('Could not auto-create Firestore profile doc:', e);
+    }
+
+    return fallbackProfile;
   },
 
   async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {

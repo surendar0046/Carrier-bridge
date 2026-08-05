@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useAuthStore, useUserStore } from '@career-bridge/store';
+import { UserRole as AppUserRole } from '@career-bridge/types';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -13,7 +14,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { login, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuthStore();
-  const { profile, fetchProfile } = useUserStore();
+  const { profile, fetchProfile, updateProfile } = useUserStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,10 +29,18 @@ export default function LoginPage() {
       } else {
         const roleLower = String(profile.role || '').toLowerCase();
         const isProUser =
+          role === 'professional' ||
           roleLower === 'professional' ||
           roleLower === 'mentor' ||
           (profile.email || '').toLowerCase().includes('rajaprabhu') ||
           (profile.name || '').toLowerCase().includes('rajaprabhu');
+
+        if (role === 'professional' && roleLower !== 'professional') {
+          updateProfile({ role: AppUserRole.PROFESSIONAL }).then(() => {
+            router.replace('/professional');
+          });
+          return;
+        }
 
         if (isProUser) {
           router.replace('/professional');
@@ -41,7 +50,7 @@ export default function LoginPage() {
         }
       }
     }
-  }, [isInitialized, isAuthenticated, profile, fetchProfile, router]);
+  }, [isInitialized, isAuthenticated, profile, role, fetchProfile, updateProfile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

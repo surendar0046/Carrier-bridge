@@ -1,8 +1,9 @@
 export enum UserRole {
-  STUDENT = 'STUDENT',
-  MENTOR = 'MENTOR',
-  EMPLOYER = 'EMPLOYER',
-  ADMIN = 'ADMIN',
+  STUDENT = 'student',
+  MENTOR = 'mentor',
+  EMPLOYER = 'employer',
+  ADMIN = 'admin',
+  PROFESSIONAL = 'professional',
 }
 
 export enum JobType {

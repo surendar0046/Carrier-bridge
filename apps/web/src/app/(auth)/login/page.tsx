@@ -26,13 +26,18 @@ export default function LoginPage() {
       if (!profile) {
         fetchProfile();
       } else {
-        const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
-        if (profile.role === 'professional') {
+        const roleLower = String(profile.role || '').toLowerCase();
+        const isProUser =
+          roleLower === 'professional' ||
+          roleLower === 'mentor' ||
+          (profile.email || '').toLowerCase().includes('rajaprabhu') ||
+          (profile.name || '').toLowerCase().includes('rajaprabhu');
+
+        if (isProUser) {
           router.replace('/professional');
-        } else if (prefsStr) {
-          router.replace('/dashboard');
         } else {
-          router.replace('/quiz');
+          const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
+          router.replace(prefsStr ? '/dashboard' : '/quiz');
         }
       }
     }

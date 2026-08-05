@@ -97,10 +97,10 @@ export default function ProfessionalDashboard() {
             {/* Quick Action Cards */}
             <div className="grid grid-cols-2 gap-4">
               {[
-                { title: 'Create Practice Test', desc: 'Build assessments for students', icon: '📝', href: '/professional/tests/new', color: 'from-blue-500 to-cyan-500' },
-                { title: 'Post Career Tip', desc: 'Share your industry insights', icon: '💡', href: '/professional/resources/new', color: 'from-violet-500 to-purple-500' },
-                { title: 'View Student Analytics', desc: 'Track learner performance', icon: '📈', href: '/professional/analytics', color: 'from-emerald-500 to-teal-500' },
-                { title: 'Forum Discussion', desc: 'Answer unanswered questions', icon: '🗣️', href: '/professional/forum', color: 'from-orange-500 to-amber-500' },
+                { title: 'Niral AI Mock Interview', desc: 'Resume & role interview simulator', icon: '🎙️', href: '/professional/mock-interview', color: 'from-blue-600 to-indigo-600' },
+                { title: 'Pro Discussion Forum', desc: 'LeetCode solutions & networking', icon: '💬', href: '/professional/forum', color: 'from-purple-600 to-violet-600' },
+                { title: 'Share Knowledge', desc: 'Post career insights & system design', icon: '💡', href: '/professional/resources/new', color: 'from-emerald-500 to-teal-500' },
+                { title: 'Insights & Analytics', desc: 'Track professional feedback', icon: '📈', href: '/professional/analytics', color: 'from-orange-500 to-amber-500' },
               ].map((a) => (
                 <Link key={a.title} href={a.href}
                   className="bg-white border border-slate-100 rounded-3xl p-5 hover:shadow-xl hover:-translate-y-1 transition-all group cursor-pointer">

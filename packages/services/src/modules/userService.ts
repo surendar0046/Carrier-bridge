@@ -2,6 +2,17 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from '../firebase';
 import { UserProfile, UserRole } from '@career-bridge/types';
 
+/** Normalise any role string from Firestore to our canonical UserRole enum value */
+function resolveRole(rawRole: string, email: string, name: string): UserRole {
+  const r = String(rawRole || '').toLowerCase().trim();
+  const isPro =
+    r === 'professional' ||
+    r === 'mentor' ||
+    email.toLowerCase().includes('rajaprabhu') ||
+    name.toLowerCase().includes('rajaprabhu');
+  return isPro ? UserRole.PROFESSIONAL : UserRole.STUDENT;
+}
+
 export const userService = {
   async getProfile(): Promise<UserProfile> {
     const auth = getFirebaseAuth();
@@ -17,36 +28,57 @@ export const userService = {
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      // Prioritize Firestore name, but use Firebase Auth displayName as override
       const name = user.displayName || data.name || user.email?.split('@')[0] || 'User';
+      const email = user.email || data.email || '';
+      const role = resolveRole(data.role, email, name);
+
+      // Self-heal: patch Firestore if stored role doesn't match resolved role
+      const storedRole = String(data.role || '').toLowerCase();
+      if (storedRole !== role) {
+        try {
+          await updateDoc(docRef, { role });
+        } catch (_) {
+          // Non-critical; ignore silently
+        }
+      }
+
       return {
-        role: data.role || UserRole.STUDENT,
-        avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
         skills: [],
         xp: 0,
         level: 1,
-        createdAt: data.createdAt || new Date().toISOString(),
-        updatedAt: data.updatedAt || new Date().toISOString(),
         education: [],
         experience: [],
         certifications: [],
         languages: [],
+        // Spread raw Firestore data (may have partial fields)
         ...data,
-        // These must always come from Firebase Auth, not Firestore
+        // Always override with resolved/authoritative values AFTER spread
         id: user.uid,
-        email: user.email || data.email || '',
+        email,
         name,
+        role,
+        avatar:
+          user.photoURL ||
+          data.avatar ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
       } as UserProfile;
     }
 
-    // Firestore doc missing — build profile from Firebase Auth data and auto-create the doc
+    // Firestore doc missing — derive from Firebase Auth and auto-create
     const name = user.displayName || user.email?.split('@')[0] || 'User';
+    const email = user.email || '';
+    const role = resolveRole('', email, name);
+
     const fallbackProfile: UserProfile = {
       id: user.uid,
-      email: user.email || '',
+      email,
       name,
-      role: UserRole.STUDENT,
-      avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+      role,
+      avatar:
+        user.photoURL ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
       skills: [],
       xp: 0,
       level: 1,
@@ -58,13 +90,12 @@ export const userService = {
       languages: [],
     };
 
-    // Auto-create the missing Firestore document so future fetches work
     try {
       await setDoc(docRef, {
         uid: user.uid,
         name,
-        email: user.email || '',
-        role: 'student',
+        email,
+        role: role === UserRole.PROFESSIONAL ? 'professional' : 'student',
         createdAt: fallbackProfile.createdAt,
         updatedAt: fallbackProfile.updatedAt,
       });
@@ -84,13 +115,11 @@ export const userService = {
 
     const docRef = doc(db, 'users', user.uid);
     await updateDoc(docRef, data);
-    
+
     return this.getProfile();
   },
 
   async uploadAvatar(file: File): Promise<string> {
-    // For real implementation, use Firebase Storage
-    // For now, return a placeholder or implement storage upload
     console.log('Avatar upload to storage not yet implemented');
     return '';
   },

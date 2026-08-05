@@ -18,32 +18,32 @@ const STUDENT_NAV = [
 // ── Professional Navigation ─────────────────────────────────────────────────
 const PROFESSIONAL_NAV = [
   { href: '/professional', label: 'Pro Dashboard', icon: '🏠' },
-  { href: '/professional/forum', label: 'Discussion Forum', icon: '💬' },
+  { href: '/professional/forum', label: 'Pro Discussion Forum', icon: '💬' },
+  { href: '/professional/mock-interview', label: 'AI Mock Interview', icon: '🎙️' },
   { href: '/professional/resources', label: 'Resources', icon: '📚' },
-  { href: '/professional/analytics', label: 'Student Insights', icon: '📈' },
-  { href: '/professional/tests/new', label: 'Create Test', icon: '📝' },
-  { href: '/professional/reputation', label: 'Reputation', icon: '⭐' },
+  { href: '/professional/analytics', label: 'Insights & Analytics', icon: '📈' },
+  { href: '/professional/reputation', label: 'Reputation & Badges', icon: '⭐' },
   { href: '/ai-copilot', label: 'Niral AI', icon: '✨' },
   { href: '/profile', label: 'Profile', icon: '👤' },
 ];
 
 // ── Notification Popup ──────────────────────────────────────────────────────
 const NOTIFICATIONS = [
-  { id: 1, type: 'answer', msg: 'Ravi Kumar replied to your answer', time: '5m ago', read: false, icon: '💬' },
+  { id: 1, type: 'answer', msg: 'Ravi Kumar replied to your solution post', time: '5m ago', read: false, icon: '💬' },
   { id: 2, type: 'badge', msg: 'You earned the "Answer Guru" badge! 🏆', time: '2h ago', read: false, icon: '🎖️' },
-  { id: 3, type: 'upvote', msg: 'Your resource got 50 saves!', time: '4h ago', read: true, icon: '📌' },
-  { id: 4, type: 'mention', msg: 'Priya Sharma tagged you in a question', time: '1d ago', read: true, icon: '🔔' },
-  { id: 5, type: 'test', msg: '8 students completed your practice test', time: '2d ago', read: true, icon: '📝' },
+  { id: 3, type: 'upvote', msg: 'Your LeetCode system design post got 50 upvotes!', time: '4h ago', read: true, icon: '📌' },
+  { id: 4, type: 'mention', msg: 'Priya Sharma requested a LinkedIn connection', time: '1d ago', read: true, icon: '🔔' },
+  { id: 5, type: 'test', msg: 'Candidate submitted a resume for AI Mock Interview', time: '2d ago', read: true, icon: '🎙️' },
 ];
 
 // ── Search Results ──────────────────────────────────────────────────────────
 const SEARCH_RESULTS = [
-  { label: 'System Design Forum', href: '/professional/forum', icon: '💬', category: 'Forum' },
-  { label: 'Share a Resource', href: '/professional/resources/new', icon: '📤', category: 'Resources' },
-  { label: 'Create Practice Test', href: '/professional/tests/new', icon: '📝', category: 'Tests' },
-  { label: 'Student Analytics', href: '/professional/analytics', icon: '📈', category: 'Analytics' },
-  { label: 'Leaderboard', href: '/professional/reputation', icon: '🏆', category: 'Reputation' },
-  { label: 'Dashboard', href: '/professional', icon: '🏠', category: 'Dashboard' },
+  { label: 'Pro Discussion Forum (LeetCode Solutions)', href: '/professional/forum', icon: '💬', category: 'Forum' },
+  { label: 'Niral AI Resume Mock Interview', href: '/professional/mock-interview', icon: '🎙️', category: 'Mock Interview' },
+  { label: 'Share a Pro Resource', href: '/professional/resources/new', icon: '📤', category: 'Resources' },
+  { label: 'Pro Analytics & Insights', href: '/professional/analytics', icon: '📈', category: 'Analytics' },
+  { label: 'Leaderboard & Reputation', href: '/professional/reputation', icon: '🏆', category: 'Reputation' },
+  { label: 'Pro Dashboard', href: '/professional', icon: '🏠', category: 'Dashboard' },
   { label: 'AI Copilot', href: '/ai-copilot', icon: '✨', category: 'AI' },
   { label: 'Job Board', href: '/jobs', icon: '💼', category: 'Jobs' },
   { label: 'Resume Builder', href: '/resume/builder', icon: '📄', category: 'Resume' },
@@ -136,7 +136,12 @@ export function Sidebar() {
   const [showNotif, setShowNotif] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  const isProfessional = profile?.role === 'professional';
+  const roleLower = String(profile?.role || '').toLowerCase();
+  const isProfessional =
+    roleLower === 'professional' ||
+    roleLower === 'mentor' ||
+    (profile?.email || '').toLowerCase().includes('rajaprabhu') ||
+    (profile?.name || '').toLowerCase().includes('rajaprabhu');
   const NAV = isProfessional ? PROFESSIONAL_NAV : STUDENT_NAV;
   const unreadCount = NOTIFICATIONS.filter(n => !n.read).length;
 

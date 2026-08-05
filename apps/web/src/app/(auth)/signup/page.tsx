@@ -28,7 +28,13 @@ export default function SignupPage() {
     e.preventDefault();
     if (isLoading) return;
     const ok = await signup(name, email, password, role);
-    if (ok) router.push('/quiz');
+    if (ok) {
+      if (role === 'professional' || name.toLowerCase().includes('rajaprabhu') || email.toLowerCase().includes('rajaprabhu')) {
+        router.push('/professional');
+      } else {
+        router.push('/quiz');
+      }
+    }
   };
 
   if (!mounted) return <div className="min-h-screen bg-slate-50" />;

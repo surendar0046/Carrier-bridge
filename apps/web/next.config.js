@@ -42,8 +42,6 @@ const nextConfig = {
       '@career-bridge/store',
       '@career-bridge/types',
     ],
-    // Tree-shake CSS for smaller bundles
-    optimizeCss: true,
   },
 };
 

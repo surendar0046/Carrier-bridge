@@ -1,3 +1,10 @@
+export interface AlternativeRole {
+  role: string;
+  confidence: number;
+  domain: string;
+  reasoning: string;
+}
+
 export interface CareerRecommendation {
   role: string;
   confidence: number;
@@ -8,6 +15,8 @@ export interface CareerRecommendation {
   futureScope: string;
   aiImpact: number;
   demandScore: number;
+  closeRoles?: AlternativeRole[];
+  studentTrack?: 'first_year' | 'fresher' | 'professional';
 }
 
 export interface RoadmapPhase {

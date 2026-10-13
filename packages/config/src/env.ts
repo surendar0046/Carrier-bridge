@@ -21,7 +21,13 @@ export const env = {
 
   // External APIs
   rapidApi: {
-    key:  'c884b018eemshc5207a81b6e1ef9p1cebcbjsn3f6ab007f0dc',
+    key:  process.env.RAPIDAPI_KEY || 'c884b018eemshc5207a81b6e1ef9p1cebcbjsn3f6ab007f0dc',
     host: 'jsearch.p.rapidapi.com',
-  }
+  },
+
+  // Realtime Mentoring
+  realtimeMentoring: {
+    apiKey: process.env.REALTIME_MENTORING_API_KEY || process.env.NEXT_PUBLIC_REALTIME_MENTORING_API_KEY || '384d8cd5f11d81dfac087fea2c8d5bf034a96c6f',
+  },
 } as const;
+

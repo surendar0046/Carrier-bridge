@@ -6,7 +6,13 @@ import { ClearStaleAuth } from './ClearStaleAuth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 60 * 1000, retry: 2, refetchOnWindowFocus: false },
+    queries: {
+      staleTime: 10 * 60 * 1000,  // 10 min — reuse cached data across page switches
+      gcTime: 30 * 60 * 1000,     // 30 min — keep data in memory longer
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,       // Don't re-fetch if data is still fresh
+    },
   },
 });
 

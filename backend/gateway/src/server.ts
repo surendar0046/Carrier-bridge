@@ -33,7 +33,7 @@ app.get('/health', (_req, res) => {
 app.get('/api/ai/test-connection', async (_req, res) => {
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "qwen/qwen3.8-27b",
       messages: [{ role: "user", content: "Hello! Testing connection." }],
       max_tokens: 5,
     });
@@ -317,7 +317,7 @@ app.post('/api/ai/chat', async (req, res) => {
   
   try {
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "qwen/qwen3.8-27b",
       messages: [
         { 
           role: "system", 

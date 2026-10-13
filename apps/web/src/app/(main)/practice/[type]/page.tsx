@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { practiceProgressService, PracticeCategory, PracticeSessionRecord } from '@career-bridge/services';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -20,6 +21,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@career-bridge/utils';
 import { PRACTICE_QUESTIONS } from '@/data/practiceQuestions';
+import { WEEKLY_ASSESSMENT_QUESTIONS } from '@/data/weeklyAssessmentQuestions';
+import { ProctoringMonitor } from '@/features/assessment/components/ProctoringMonitor';
 
 const LANGUAGES = [
   { id: 'javascript', name: 'JavaScript', icon: 'JS', color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
@@ -32,6 +35,8 @@ const LANGUAGES = [
 export default function PracticeSessionPage({ params }: { params: { type: string } }) {
   const { type } = params;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAssessmentMode = searchParams?.get('mode') === 'assessment';
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [sessionQuestions, setSessionQuestions] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -46,6 +51,27 @@ export default function PracticeSessionPage({ params }: { params: { type: string
   const [testcaseResults, setTestcaseResults] = useState<any[] | null>(null);
   const [runMessage, setRunMessage] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const recordSavedRef = useRef(false);
+  const [recordedRecord, setRecordedRecord] = useState<PracticeSessionRecord | null>(null);
+
+  // Automatically record student progress when session completes
+  useEffect(() => {
+    if (isFinished && !recordSavedRef.current && sessionQuestions.length > 0) {
+      recordSavedRef.current = true;
+      const initialSeconds = (type === 'aptitude' || type === 'verbal') ? 600 : 900;
+      const timeTaken = Math.max(10, initialSeconds - timeLeft);
+
+      const record = practiceProgressService.recordSession({
+        category: (isAssessmentMode ? 'weekly' : type) as PracticeCategory,
+        score,
+        totalQuestions: sessionQuestions.length,
+        timeTakenSeconds: timeTaken,
+        language: selectedLanguage || undefined,
+        isWeeklyAssessment: isAssessmentMode,
+      });
+      setRecordedRecord(record);
+    }
+  }, [isFinished, score, sessionQuestions.length, timeLeft, type, selectedLanguage, isAssessmentMode]);
 
   const isTechnical = type === 'coding' || type === 'debugging';
 
@@ -53,17 +79,27 @@ export default function PracticeSessionPage({ params }: { params: { type: string
   useEffect(() => {
     if (isTechnical && !selectedLanguage) return;
 
-    let qs = PRACTICE_QUESTIONS.filter(q => q.type === type);
-    if (isTechnical && selectedLanguage) {
-      qs = qs.filter(q => q.language === selectedLanguage);
+    let qs: any[] = [];
+    if (isAssessmentMode) {
+      // 100% distinct weekly assessment questions
+      qs = WEEKLY_ASSESSMENT_QUESTIONS.filter(q => q.section === type || q.type === type);
+      if (isTechnical && selectedLanguage) {
+        qs = qs.filter(q => q.language === selectedLanguage);
+      }
+    } else {
+      // Daily practice questions
+      qs = PRACTICE_QUESTIONS.filter(q => q.type === type);
+      if (isTechnical && selectedLanguage) {
+        qs = qs.filter(q => q.language === selectedLanguage);
+      }
     }
 
     // Shuffle questions
     const shuffled = [...qs].sort(() => Math.random() - 0.5);
 
-    // 10 questions for aptitude/verbal, 2-3 (3) questions for coding/debugging
-    const limit = (type === 'aptitude' || type === 'verbal') ? 10 : 3;
-    const finalQs = shuffled.slice(0, limit);
+    // Question limits
+    const limit = (type === 'aptitude' || type === 'verbal') ? (isAssessmentMode ? 5 : 10) : 3;
+    const finalQs = shuffled.slice(0, Math.min(limit, shuffled.length));
 
     setSessionQuestions(finalQs);
     setCurrentStep(0);
@@ -73,7 +109,7 @@ export default function PracticeSessionPage({ params }: { params: { type: string
     setTestcaseResults(null);
     setRunMessage(null);
     setTimeLeft((type === 'aptitude' || type === 'verbal') ? 600 : 900); // 10 mins vs 15 mins
-  }, [type, selectedLanguage, isTechnical]);
+  }, [type, selectedLanguage, isTechnical, isAssessmentMode]);
 
   const currentQuestion = sessionQuestions[currentStep];
 
@@ -226,7 +262,10 @@ export default function PracticeSessionPage({ params }: { params: { type: string
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 p-8">
+    <div className="max-w-4xl mx-auto space-y-8 p-8 relative">
+      {!isFinished && (!isTechnical || selectedLanguage) && (
+        <ProctoringMonitor maxViolations={3} />
+      )}
       {!isFinished ? (
         <>
           {/* Header */}
@@ -506,53 +545,83 @@ export default function PracticeSessionPage({ params }: { params: { type: string
         </>
       ) : (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 space-y-12"
+          className="text-center py-12 space-y-10 max-w-2xl mx-auto"
         >
           <div className="relative inline-block">
-            <div className="w-32 h-32 bg-blue-600/20 rounded-full flex items-center justify-center">
-              <Trophy size={64} className="text-yellow-500" />
+            <div className="w-28 h-28 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/30">
+              <Trophy size={56} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
             </div>
             <motion.div 
-              className="absolute -top-4 -right-4 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-black text-xl"
+              className="absolute -top-2 -right-2 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-black text-sm shadow-lg border-2 border-slate-900"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.5, type: 'spring' }}
+              transition={{ delay: 0.3, type: 'spring' }}
             >
-              {Math.round((score / sessionQuestions.length) * 100)}
+              {Math.round((score / sessionQuestions.length) * 100)}%
             </motion.div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-5xl font-black text-white">Great job!</h2>
-            <p className="text-xl text-slate-400 max-w-md mx-auto">
-              You&apos;ve completed the {selectedLanguage || ''} {type} practice session with a score of {score} / {sessionQuestions.length}.
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-bold">
+              <CheckCircle2 size={14} />
+              <span>Progress Recorded Successfully</span>
+            </div>
+            <h2 className="text-4xl font-black text-white">
+              {isAssessmentMode ? 'Weekly Assessment Completed!' : 'Session Completed!'}
+            </h2>
+            <p className="text-slate-400 max-w-md mx-auto text-sm">
+              {isAssessmentMode 
+                ? `Your assessment result has been logged into your weekly evaluation records and global leaderboard.`
+                : `Great effort! Your progress for ${selectedLanguage ? `${selectedLanguage} ` : ''}${type} has been saved to your student profile.`
+              }
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto">
-            <div className="glass-card p-6">
-              <div className="text-2xl font-bold text-white">{Math.round((score / sessionQuestions.length) * 100)}%</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">Accuracy</div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="glass-card p-5 border border-white/10 rounded-2xl bg-white/[0.03]">
+              <div className="text-2xl font-bold text-white">
+                {score} / {sessionQuestions.length}
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Correct Answers</div>
             </div>
-            <div className="glass-card p-6">
-              <div className="text-2xl font-bold text-white">+{score * 20}</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">XP Earned</div>
+            <div className="glass-card p-5 border border-white/10 rounded-2xl bg-white/[0.03]">
+              <div className="text-2xl font-bold text-emerald-400">
+                +{recordedRecord?.xpEarned || (score * 20 + (isAssessmentMode ? 100 : 0))} XP
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">XP Earned</div>
             </div>
-            <div className="glass-card p-6">
-              <div className="text-2xl font-bold text-white">{formatTime(900 - timeLeft)}</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">Time Taken</div>
+            <div className="glass-card p-5 border border-white/10 rounded-2xl bg-white/[0.03]">
+              <div className="text-2xl font-bold text-white">
+                {formatTime(recordedRecord?.timeTakenSeconds || Math.max(10, ((type === 'aptitude' || type === 'verbal' ? 600 : 900) - timeLeft)))}
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Time Taken</div>
             </div>
           </div>
 
-          <div className="flex justify-center gap-4">
-            <button onClick={() => router.push('/profile')} className="btn-primary px-8 py-4">
-              Proceed to Profile
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <button 
+              onClick={() => router.push('/practice')} 
+              className="btn-primary px-6 py-3 text-sm flex items-center gap-2"
+            >
+              Practice Hub
+              <ChevronRight size={16} />
             </button>
-            <button onClick={() => window.location.reload()} className="btn-primary px-8 py-4 flex items-center gap-2">
-              Practice Again
-              <RotateCcw size={18} />
+            {isAssessmentMode && (
+              <button 
+                onClick={() => router.push('/assessments/weekly')} 
+                className="btn-secondary px-6 py-3 text-sm flex items-center gap-2"
+              >
+                Weekly Challenge Page
+              </button>
+            )}
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn-secondary px-6 py-3 text-sm flex items-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Try Again
             </button>
           </div>
         </motion.div>

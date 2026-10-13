@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { mentorService } from '@career-bridge/services';
+import { mentorService, MOCK_MENTORS } from '@career-bridge/services';
 import { Mentor, MentorSession } from '@career-bridge/types';
 
 interface MentorState {
@@ -15,7 +15,7 @@ interface MentorState {
 }
 
 export const useMentorStore = create<MentorState>()((set) => ({
-  mentors: [],
+  mentors: MOCK_MENTORS,
   sessions: [],
   selectedMentor: null,
   isLoading: false,

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Job } from '@career-bridge/types';
+import { INDIA_JOBS } from '@/app/api/jobs/jobsData';
 
 // ── Category presets — query sent to API + title keywords for filtering ────────
 const CATEGORIES = [
@@ -99,8 +100,8 @@ export default function JobsPage() {
   const [city,           setCity]           = useState('🇮🇳 All India');
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[0] | null>(null);
   const [page,           setPage]           = useState(1);
-  const [allJobs,        setAllJobs]        = useState<any[]>([]);
-  const [totalCount,     setTotalCount]     = useState(0);
+  const [allJobs,        setAllJobs]        = useState<any[]>(() => INDIA_JOBS.slice(0, 24));
+  const [totalCount,     setTotalCount]     = useState(() => INDIA_JOBS.length);
   const [typeFilter,     setTypeFilter]     = useState('');
   const [sourceFilter,   setSourceFilter]   = useState('');
   const [remoteOnly,     setRemoteOnly]     = useState(false);

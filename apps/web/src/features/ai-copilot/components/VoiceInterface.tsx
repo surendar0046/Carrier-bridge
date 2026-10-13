@@ -35,10 +35,10 @@ export const VoiceInterface: React.FC = () => {
       </div>
 
       <div>
-        <h4 className="text-sm font-bold text-white">
+        <h4 className="text-base font-bold text-slate-900">
           {isListening ? 'Listening...' : 'Tap to speak'}
         </h4>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           {isListening ? 'Say a command like "Open jobs" or "Find a mentor"' : 'Voice command interface is active'}
         </p>
       </div>

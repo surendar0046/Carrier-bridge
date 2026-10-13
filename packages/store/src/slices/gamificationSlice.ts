@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { gamificationService } from '@career-bridge/services';
+import { gamificationService, MOCK_GAMIFICATION, MOCK_LEADERBOARD } from '@career-bridge/services';
 import { GamificationProfile, LeaderboardEntry } from '@career-bridge/types';
 
 interface GamificationState {
@@ -11,8 +11,8 @@ interface GamificationState {
 }
 
 export const useGamificationStore = create<GamificationState>()((set) => ({
-  profile: null,
-  leaderboard: [],
+  profile: MOCK_GAMIFICATION,
+  leaderboard: MOCK_LEADERBOARD,
   isLoading: false,
 
   fetchProfile: async () => {

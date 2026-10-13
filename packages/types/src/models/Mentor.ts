@@ -5,6 +5,9 @@ export interface Mentor {
   userId: string;
   name: string;
   avatar?: string;
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
   title: string;
   company: string;
   expertise: string[];
@@ -37,6 +40,11 @@ export interface MentorSession {
   topic: string;
   notes?: string;
   meetingUrl?: string;
+  studentName?: string;
+  studentEmail?: string;
+  studentPhone?: string;
+  whatsappNotified?: boolean;
+  emailNotified?: boolean;
   feedback?: SessionFeedback;
 }
 

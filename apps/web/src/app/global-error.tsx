@@ -25,7 +25,7 @@ export default function GlobalError({
             flexDirection: 'column',
             gap: '24px',
             color: '#e2e8f0',
-            fontFamily: 'system-ui, sans-serif',
+            fontFamily: "'Poppins', system-ui, sans-serif",
             padding: '32px',
             textAlign: 'center',
           }}

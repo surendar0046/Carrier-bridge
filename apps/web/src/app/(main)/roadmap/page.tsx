@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Recommendation } from '@career-bridge/ai';
-import { ROLE_ROADMAPS, ACCENT_COLORS } from '@/data/roadmapData';
+import { ROLE_ROADMAPS, ACCENT_COLORS, getRoleRoadmap } from '@/data/roadmapData';
 import { useUserStore } from '@career-bridge/store';
 
 export default function RoadmapPage() {
@@ -56,7 +56,7 @@ export default function RoadmapPage() {
     );
   }
 
-  const roadmap = ROLE_ROADMAPS[rec.role] ?? ROLE_ROADMAPS['Full Stack Developer'];
+  const roadmap = getRoleRoadmap(rec.role);
   const phase = roadmap.phases[activePhase];
   const accent = ACCENT_COLORS[phase.accent];
 

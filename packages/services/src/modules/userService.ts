@@ -5,11 +5,29 @@ import { UserProfile, UserRole } from '@career-bridge/types';
 /** Normalise any role string from Firestore to our canonical UserRole enum value */
 function resolveRole(rawRole: string, email: string, name: string): UserRole {
   const r = String(rawRole || '').toLowerCase().trim();
+  const emailLower = (email || '').toLowerCase().trim();
+  const nameLower = (name || '').toLowerCase().trim();
+
+  let localRolePref = '';
+  if (typeof window !== 'undefined') {
+    localRolePref = (
+      localStorage.getItem(`cb_role_${emailLower}`) ||
+      localStorage.getItem('cb_active_mode') ||
+      ''
+    ).toLowerCase();
+  }
+
   const isPro =
     r === 'professional' ||
     r === 'mentor' ||
-    email.toLowerCase().includes('rajaprabhu') ||
-    name.toLowerCase().includes('rajaprabhu');
+    localRolePref === 'professional' ||
+    localRolePref === 'mentor' ||
+    emailLower.includes('rajaprabhu') ||
+    nameLower.includes('rajaprabhu') ||
+    emailLower.includes('shriraam') ||
+    nameLower.includes('shriraam') ||
+    emailLower.includes('shriram') ||
+    nameLower.includes('shriram');
   return isPro ? UserRole.PROFESSIONAL : UserRole.STUDENT;
 }
 
@@ -17,29 +35,52 @@ export const userService = {
   async getProfile(): Promise<UserProfile> {
     const auth = getFirebaseAuth();
     const db = getFirebaseDb();
-    const user = auth.currentUser;
+    let user = auth.currentUser;
+
+    // Wait for auth to be fully ready if not yet determined
+    if (!user && typeof (auth as any).authStateReady === 'function') {
+      try {
+        await (auth as any).authStateReady();
+        user = auth.currentUser;
+      } catch (e) {
+        console.warn('Error waiting for authStateReady:', e);
+      }
+    }
 
     if (!user) {
+      // Resilient fallback: return active/cached session profile instead of throwing
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('career-bridge-user');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.state?.profile && parsed.state.profile.id && parsed.state.profile.id !== 'usr-surendar') {
+              return parsed.state.profile;
+            }
+          } catch {}
+        }
+      }
       throw new Error('Not authenticated');
     }
 
     const docRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(docRef);
+    let docSnap = null;
+    try {
+      docSnap = await getDoc(docRef);
+    } catch (e) {
+      console.warn('Could not read user profile doc from Firestore:', e);
+    }
 
-    if (docSnap.exists()) {
+    if (docSnap && docSnap.exists()) {
       const data = docSnap.data();
-      const name = user.displayName || data.name || user.email?.split('@')[0] || 'User';
+      const name = data.name || user.displayName || user.email?.split('@')[0] || 'User';
       const email = user.email || data.email || '';
       const role = resolveRole(data.role, email, name);
 
-      // Self-heal: patch Firestore if stored role doesn't match resolved role
+      // Self-heal: patch Firestore if stored role doesn't match resolved role (non-blocking)
       const storedRole = String(data.role || '').toLowerCase();
       if (storedRole !== role) {
-        try {
-          await updateDoc(docRef, { role });
-        } catch (_) {
-          // Non-critical; ignore silently
-        }
+        updateDoc(docRef, { role }).catch(() => {});
       }
 
       return {
@@ -90,18 +131,17 @@ export const userService = {
       languages: [],
     };
 
-    try {
-      await setDoc(docRef, {
-        uid: user.uid,
-        name,
-        email,
-        role: role === UserRole.PROFESSIONAL ? 'professional' : 'student',
-        createdAt: fallbackProfile.createdAt,
-        updatedAt: fallbackProfile.updatedAt,
-      });
-    } catch (e) {
+    // Asynchronously create Firestore profile without blocking caller latency
+    setDoc(docRef, {
+      uid: user.uid,
+      name,
+      email,
+      role: role === UserRole.PROFESSIONAL ? 'professional' : 'student',
+      createdAt: fallbackProfile.createdAt,
+      updatedAt: fallbackProfile.updatedAt,
+    }).catch((e) => {
       console.warn('Could not auto-create Firestore profile doc:', e);
-    }
+    });
 
     return fallbackProfile;
   },

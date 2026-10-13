@@ -13,29 +13,97 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { login, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuthStore();
+  const { login, logout, resetPassword, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuthStore();
   const { profile, fetchProfile, updateProfile } = useUserStore();
   const router = useRouter();
+
+  // Forgot password modal state
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     clearError();
-  }, [clearError]);
+    // Warm up destination route chunks in background to make transition instant
+    try {
+      router.prefetch('/quiz');
+      router.prefetch('/dashboard');
+      router.prefetch('/professional');
+    } catch {}
+    // Ensure any leftover dummy or stale profile is wiped when visiting login unauthenticated
+    if (!isAuthenticated) {
+      const p = useUserStore.getState().profile;
+      if (p?.id === 'usr-surendar' || p?.email === 'surendarg0046@gmail.com') {
+        useUserStore.getState().clearProfile();
+      }
+    }
+  }, [clearError, isAuthenticated, router]);
+
+  const hasUserTakenTest = (userProfile: any, userEmail: string): boolean => {
+    if (typeof window === 'undefined') return false;
+    const emailKey = (userEmail || userProfile?.email || '').toLowerCase().trim();
+    if (!emailKey) return false;
+
+    // 1. Direct completion flag in localStorage
+    if (localStorage.getItem(`cb_test_completed_${emailKey}`) === 'true') {
+      return true;
+    }
+
+    // 2. Preferences record in localStorage
+    try {
+      const prefsStr = localStorage.getItem(`cb_prefs_${emailKey}`);
+      if (prefsStr) {
+        const prefs = JSON.parse(prefsStr);
+        if (prefs?.hasCompletedTest || prefs?.recommendation) {
+          return true;
+        }
+      }
+    } catch { }
+
+    // 3. User profile flag
+    if ((userProfile as any)?.hasCompletedAssessment) {
+      return true;
+    }
+
+    return false;
+  };
 
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
       if (!profile) {
         fetchProfile();
       } else {
+        const userEmail = profile.email || email;
+        const testTaken = hasUserTakenTest(profile, userEmail);
+
+        if (!testTaken) {
+          // If the sign-in user has never taken the test, show test once!
+          router.replace('/quiz');
+          return;
+        }
+
+        // Test already completed: proceed straight to dashboard
         const roleLower = String(profile.role || '').toLowerCase();
         const isProUser =
           role === 'professional' ||
           roleLower === 'professional' ||
           roleLower === 'mentor' ||
           (profile.email || '').toLowerCase().includes('rajaprabhu') ||
-          (profile.name || '').toLowerCase().includes('rajaprabhu');
+          (profile.name || '').toLowerCase().includes('rajaprabhu') ||
+          (profile.email || '').toLowerCase().includes('shriraam') ||
+          (profile.name || '').toLowerCase().includes('shriraam') ||
+          (profile.email || '').toLowerCase().includes('shriram') ||
+          (profile.name || '').toLowerCase().includes('shriram');
 
         if (role === 'professional' && roleLower !== 'professional') {
+          if (typeof window !== 'undefined') {
+            const emailKey = (profile.email || email).toLowerCase().trim();
+            localStorage.setItem(`cb_role_${emailKey}`, 'professional');
+            localStorage.setItem('cb_active_mode', 'professional');
+          }
           updateProfile({ role: AppUserRole.PROFESSIONAL }).then(() => {
             router.replace('/professional');
           });
@@ -45,29 +113,73 @@ export default function LoginPage() {
         if (isProUser) {
           router.replace('/professional');
         } else {
-          const prefsStr = localStorage.getItem(`cb_prefs_${profile.email}`);
-          router.replace(prefsStr ? '/dashboard' : '/quiz');
+          router.replace('/dashboard');
         }
       }
     }
-  }, [isInitialized, isAuthenticated, profile, role, fetchProfile, updateProfile, router]);
+  }, [isInitialized, isAuthenticated, profile, role, email, fetchProfile, updateProfile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
-    await login(email, password);
-    // Redirection handled by useEffect once authenticated and profile loaded
+    const ok = await login(email, password);
+    if (ok) {
+      if (role === 'professional') {
+        if (typeof window !== 'undefined') {
+          const emailKey = email.toLowerCase().trim();
+          localStorage.setItem(`cb_role_${emailKey}`, 'professional');
+          localStorage.setItem('cb_active_mode', 'professional');
+        }
+        await updateProfile({ role: AppUserRole.PROFESSIONAL }).catch(() => {});
+      }
+      const activeProf = useUserStore.getState().profile || profile;
+      const testTaken = hasUserTakenTest(activeProf, email);
+      if (!testTaken) {
+        router.replace('/quiz');
+      } else {
+        const roleLower = String(activeProf?.role || '').toLowerCase();
+        const isProUser =
+          role === 'professional' ||
+          roleLower === 'professional' ||
+          roleLower === 'mentor' ||
+          (email || '').toLowerCase().includes('rajaprabhu') ||
+          (activeProf?.name || '').toLowerCase().includes('rajaprabhu') ||
+          (email || '').toLowerCase().includes('shriraam') ||
+          (activeProf?.name || '').toLowerCase().includes('shriraam') ||
+          (email || '').toLowerCase().includes('shriram') ||
+          (activeProf?.name || '').toLowerCase().includes('shriram');
+        if (isProUser) {
+          router.replace('/professional');
+        } else {
+          router.replace('/dashboard');
+        }
+      }
+    }
   };
 
-  if (!mounted) return <div className="min-h-screen bg-slate-50" />;
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetLoading || !resetEmail.trim()) return;
+    setResetLoading(true);
+    setResetError(null);
+    const res = await resetPassword(resetEmail.trim());
+    setResetLoading(false);
+    if (res.success) {
+      setResetSent(true);
+    } else {
+      setResetError(res.error || 'Failed to send password reset email.');
+    }
+  };
+
+  if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans bg-white">
 
       {/* ── Animated Background ── */}
       <div className="absolute inset-0 z-0">
         {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-white" />
         {/* Glowing orbs */}
         <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-300/15 blur-[120px] animate-pulse-slow" />
         <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-violet-300/15 blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
@@ -139,6 +251,7 @@ export default function LoginPage() {
             {/* Feature Pills */}
             <div className="flex flex-col gap-2 items-start mx-auto">
               {[
+                { icon: '✦', label: 'CONNECT : LEARN : SUCCEED : GROW' },
                 { icon: '✦', label: 'AI-Powered Resume Builder' },
                 { icon: '✦', label: 'Smart Job Matching' },
                 { icon: '✦', label: 'Career Roadmap & Coaching' },
@@ -174,7 +287,7 @@ export default function LoginPage() {
                 <div className="flex items-start gap-3 p-4 rounded-2xl text-xs font-semibold text-red-700 animate-shake"
                   style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
                   <svg className="w-4 h-4 mt-0.5 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   {error}
                 </div>
@@ -219,9 +332,18 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                  <Link href="#" className="text-[11px] font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetEmail(email);
+                      setResetSent(false);
+                      setResetError(null);
+                      setShowResetModal(true);
+                    }}
+                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-500 transition-colors cursor-pointer"
+                  >
                     Forgot password?
-                  </Link>
+                  </button>
                 </div>
                 <div className="relative group">
                   <input
@@ -285,8 +407,13 @@ export default function LoginPage() {
               </div>
 
               {/* Sign Up Link */}
-              <Link href="/signup"
-                className="flex items-center justify-center w-full py-3.5 rounded-2xl text-sm font-bold text-slate-700 border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all">
+              <Link
+                href="/signup"
+                onClick={() => {
+                  logout();
+                }}
+                className="flex items-center justify-center w-full py-3.5 rounded-2xl text-sm font-bold text-slate-700 border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all cursor-pointer"
+              >
                 Create a free account →
               </Link>
             </form>
@@ -294,7 +421,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes pulse-slow {
           0%, 100% { opacity: 0.6; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.1); }
@@ -320,6 +448,119 @@ export default function LoginPage() {
           box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
         }
       ` }} />
+      {/* ── Forgot Password Modal ── */}
+      {showResetModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowResetModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Reset Password</h3>
+                <p className="text-xs text-slate-500">We will send a secure reset link to your email</p>
+              </div>
+            </div>
+
+            {resetSent ? (
+              <div className="space-y-5 pt-2">
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="text-xs">
+                    <p className="font-semibold text-emerald-900">Email Sent Successfully!</p>
+                    <p className="text-emerald-700 mt-0.5">
+                      Check <span className="font-medium text-emerald-900">{resetEmail}</span> for the password reset instructions.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(false)}
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs transition-colors"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                {resetError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-xs flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{resetError}</span>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    Your Registered Email
+                  </label>
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium text-xs transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors shadow-sm disabled:opacity-60 flex items-center justify-center gap-1.5"
+                  >
+                    {resetLoading ? (
+                      <>
+                        <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <span>Send Reset Link</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -86,7 +86,7 @@ function InlineContent({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         part.startsWith('**') && part.endsWith('**')
-          ? <strong key={i} className="font-bold text-white">{part.slice(2, -2)}</strong>
+          ? <strong key={i} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>
           : <span key={i}>{part}</span>
       )}
     </>
@@ -97,7 +97,7 @@ function InlineContent({ text }: { text: string }) {
 function MessageContent({ content }: { content: string }) {
   const lines = content.split('\n');
   return (
-    <div className="space-y-1.5 text-sm leading-relaxed">
+    <div className="space-y-1.5 text-base leading-relaxed text-slate-800">
       {lines.map((line, i) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={i} className="h-1" />;
@@ -106,7 +106,7 @@ function MessageContent({ content }: { content: string }) {
         if (numberedMatch) {
           return (
             <div key={i} className="flex gap-2">
-              <span className="font-bold text-blue-400 min-w-[1.2rem]">{numberedMatch[1]}.</span>
+              <span className="font-bold text-blue-600 min-w-[1.2rem]">{numberedMatch[1]}.</span>
               <span><InlineContent text={numberedMatch[2]} /></span>
             </div>
           );
@@ -116,7 +116,7 @@ function MessageContent({ content }: { content: string }) {
         if (bulletMatch) {
           return (
             <div key={i} className="flex gap-2">
-              <span className="text-blue-400 mt-0.5">▸</span>
+              <span className="text-blue-600 mt-0.5">▸</span>
               <span><InlineContent text={bulletMatch[1]} /></span>
             </div>
           );
@@ -218,46 +218,46 @@ export default function NiralAIPage() {
   };
 
   return (
-    <div className="niral-ai-container flex flex-col h-screen bg-slate-950 text-white">
+    <div className="niral-ai-container flex flex-col h-screen bg-white text-slate-800">
       {/* Header */}
-      <div className="niral-ai-header border-b border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="niral-ai-header border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 bg-white/95 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xl shadow-lg shadow-blue-500/30">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-xl shadow-md shadow-blue-500/20 text-white">
             ✨
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg leading-none">Niral AI</h1>
-            <div className="flex items-center gap-1.5 mt-1">
+            <h1 className="font-extrabold text-slate-900 text-xl leading-none">Niral AI</h1>
+            <div className="flex items-center gap-1.5 mt-1.5">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs text-slate-400">Online · Career Intelligence</span>
+              <span className="text-xs text-slate-500 font-medium">Online · Career Intelligence</span>
             </div>
           </div>
         </div>
         <button
           onClick={clearConversation}
-          className="text-xs text-slate-500 hover:text-slate-300 transition-colors px-3 py-1.5 border border-slate-800 hover:border-slate-600 rounded-lg"
+          className="text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors px-3.5 py-2 border border-slate-200 rounded-xl bg-white shadow-sm"
         >
           Clear chat
         </button>
       </div>
 
       {/* Messages */}
-      <div className="niral-ai-messages flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
+      <div className="niral-ai-messages flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6 bg-white">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} gap-3`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-base shrink-0 mt-1 shadow-md shadow-blue-500/20">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-base shrink-0 mt-1 shadow-md shadow-blue-500/10 text-white">
                 ✨
               </div>
             )}
-            <div className={`max-w-[78%] rounded-2xl px-5 py-3.5 ${
+            <div className={`max-w-[78%] rounded-2xl px-5 py-4 ${
               msg.role === 'user'
-                ? 'niral-ai-user-bubble bg-blue-600 text-white rounded-br-sm text-sm leading-relaxed'
-                : 'niral-ai-assistant-bubble bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-sm'
+                ? 'niral-ai-user-bubble bg-blue-600 text-white rounded-br-sm text-base leading-relaxed shadow-sm'
+                : 'niral-ai-assistant-bubble bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm'
             }`}>
               {msg.role === 'assistant'
                 ? <MessageContent content={msg.content} />
-                : <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                : <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
               }
             </div>
           </div>
@@ -266,14 +266,14 @@ export default function NiralAIPage() {
         {/* Thinking indicator */}
         {isThinking && (
           <div className="flex justify-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-base shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-base shrink-0 text-white">
               ✨
             </div>
-            <div className="niral-ai-thinking-bubble bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-sm px-5 py-4 flex items-center gap-1.5">
-              <span className="text-xs text-slate-400 mr-1">Niral AI is thinking</span>
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="niral-ai-thinking-bubble bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-5 py-4 flex items-center gap-2 shadow-sm">
+              <span className="text-sm font-medium text-slate-500 mr-1">Niral AI is thinking</span>
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         )}
@@ -281,12 +281,12 @@ export default function NiralAIPage() {
       </div>
 
       {/* Suggestions */}
-      <div className="niral-ai-suggestions px-4 md:px-8 pb-3 flex gap-2 overflow-x-auto scrollbar-hide shrink-0">
+      <div className="niral-ai-suggestions px-4 md:px-8 pb-3 flex gap-2.5 overflow-x-auto scrollbar-hide shrink-0 bg-white">
         {SUGGESTIONS.map((s) => (
           <button
             key={s}
             onClick={() => { setInput(s); setAttachedFile(null); inputRef.current?.focus(); }}
-            className="flex-shrink-0 text-xs px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-full text-slate-300 hover:border-blue-500 hover:text-blue-400 transition-colors whitespace-nowrap"
+            className="flex-shrink-0 text-sm font-semibold px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/50 shadow-sm transition-all whitespace-nowrap"
           >
             {s}
           </button>
@@ -295,22 +295,22 @@ export default function NiralAIPage() {
 
       {/* Attached file badge */}
       {attachedFile && (
-        <div className="px-4 md:px-8 pb-2 shrink-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-400">
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="px-4 md:px-8 pb-2 shrink-0 bg-white">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-sm font-medium text-blue-700">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span className="truncate max-w-[200px]">{attachedFile}</span>
             <button
               onClick={() => { setAttachedFile(null); setInput(''); }}
-              className="ml-1 text-blue-400/60 hover:text-blue-300 transition-colors"
+              className="ml-1 text-blue-600/70 hover:text-blue-800 transition-colors font-bold"
             >✕</button>
           </div>
         </div>
       )}
 
       {/* Input */}
-      <div className="niral-ai-input-container border-t border-slate-800 px-4 md:px-8 py-4 shrink-0">
+      <div className="niral-ai-input-container border-t border-slate-200 px-4 md:px-8 py-4 shrink-0 bg-white/95 backdrop-blur-md">
         <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <textarea
@@ -320,7 +320,7 @@ export default function NiralAIPage() {
               onKeyDown={handleKeyDown}
               placeholder="Ask Niral AI anything about your career..."
               rows={1}
-              className="niral-ai-textarea w-full bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none text-sm leading-relaxed max-h-32 overflow-y-auto"
+              className="niral-ai-textarea w-full bg-white border border-slate-300 shadow-sm rounded-2xl pl-4 pr-12 py-3.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none text-base leading-relaxed max-h-32 overflow-y-auto"
               disabled={isThinking || isParsing}
               style={{ height: 'auto' }}
               onInput={(e) => {
@@ -329,8 +329,8 @@ export default function NiralAIPage() {
                 el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
               }}
             />
-            <div className="absolute right-2 bottom-2 flex items-center gap-1">
-              <label className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-slate-800 rounded-lg cursor-pointer transition-all active:scale-90">
+            <div className="absolute right-2.5 bottom-2.5 flex items-center gap-1">
+              <label className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-xl cursor-pointer transition-all active:scale-90">
                 <input
                   type="file"
                   className="hidden"
@@ -379,17 +379,17 @@ export default function NiralAIPage() {
           <button
             onClick={handleSend}
             disabled={isThinking || !input.trim()}
-            className="niral-ai-send-btn px-5 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-bold transition-all text-lg shrink-0 shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 active:scale-95"
+            className="niral-ai-send-btn px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl font-black transition-all text-xl shrink-0 shadow-md shadow-blue-600/30 active:scale-95 flex items-center justify-center min-w-[3.5rem]"
           >
             {isThinking ? (
-              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             ) : '→'}
           </button>
         </div>
-        <p className="text-[10px] text-slate-600 mt-2 text-center">Press Enter to send · Shift+Enter for new line · Upload Resume to analyze</p>
+        <p className="text-xs text-slate-500 mt-2 text-center font-medium">Press Enter to send · Shift+Enter for new line · Upload Resume to analyze</p>
       </div>
     </div>
   );

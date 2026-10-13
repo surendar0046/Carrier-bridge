@@ -26,22 +26,22 @@ export default function DashboardPage() {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     
-    // Fetch all real-time data with error resilience
+    // Phase 1: Critical data — show UI immediately once these resolve
     Promise.allSettled([
-      fetchProfile(), 
-      fetchFeaturedJobs(), 
-      fetchGam(),
-      fetchApplications(),
-      fetchMySessions()
-    ]).then((results) => {
-      results.forEach((result, i) => {
-        if (result.status === 'rejected') {
-          console.error(`Fetch error at index ${i}:`, result.reason);
-        }
-      });
+      fetchProfile(),
+      fetchFeaturedJobs(),
+    ]).then(() => {
       setLoaded(true);
     });
+
+    // Phase 2: Secondary data — load in background, no UI block
+    Promise.allSettled([
+      fetchGam(),
+      fetchApplications(),
+      fetchMySessions(),
+    ]).catch(() => {/* non-critical, fail silently */});
   }, [isAuthenticated, router, fetchProfile, fetchFeaturedJobs, fetchGam, fetchApplications, fetchMySessions]);
+
 
   const stats = [
     { 
@@ -75,7 +75,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white text-slate-800 p-8 relative overflow-hidden">
        {/* Background Decoration */}
        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
        

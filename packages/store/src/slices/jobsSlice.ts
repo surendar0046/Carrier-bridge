@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { jobService, realTimeJobService } from '@career-bridge/services';
+import { jobService, realTimeJobService, MOCK_JOBS } from '@career-bridge/services';
 import { Job, JobFilter, JobApplication } from '@career-bridge/types';
 
 interface JobsState {
@@ -22,14 +22,14 @@ interface JobsState {
 }
 
 export const useJobsStore = create<JobsState>()((set, get) => ({
-  jobs: [],
-  featuredJobs: [],
+  jobs: MOCK_JOBS,
+  featuredJobs: MOCK_JOBS.filter((j) => j.isFeatured),
   selectedJob: null,
   applications: [],
   filters: {},
   isLoading: false,
   error: null,
-  total: 0,
+  total: MOCK_JOBS.length,
   realTimeJobs: [],
 
   fetchJobs: async (filters) => {

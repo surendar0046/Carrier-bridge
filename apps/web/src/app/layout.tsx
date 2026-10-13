@@ -1,13 +1,19 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import '../styles/globals.css'
 import { Providers } from '../lib/providers'
 import PWAInstaller from '../components/PWAInstaller'
 
-const inter = Inter({ subsets: ['latin'] })
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+  display: 'swap',
+  preload: true,
+})
 
 export const viewport: Viewport = {
-  themeColor: '#020617',
+  themeColor: '#ffffff',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -27,7 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-[#020617] text-slate-200 antialiased selection:bg-blue-500/30 selection:text-blue-200`}>
+      <body className={`${poppins.className} bg-white text-slate-800 antialiased selection:bg-blue-500/20 selection:text-blue-900`}>
         <Providers>
           <PWAInstaller />
           {children}

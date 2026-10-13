@@ -11,18 +11,38 @@ interface UserState {
   fetchProfile: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   updateActiveRole: (role: string) => void;
+  clearProfile: () => void;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: null,
       activeRole: null,
       isLoading: false,
       error: null,
 
+      clearProfile: () => {
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('career-bridge-user');
+          } catch {}
+        }
+        set({ profile: null, activeRole: null, error: null, isLoading: false });
+      },
+
       fetchProfile: async () => {
-        set({ isLoading: true, error: null });
+        // If current profile is dummy profile, clear it
+        const currentProfile = get().profile;
+        if (currentProfile?.id === 'usr-surendar' || currentProfile?.email === 'surendarg0046@gmail.com') {
+          get().clearProfile();
+        }
+
+        // Stale-while-revalidate: only show loading if we don't already have a profile in state
+        const validProfile = get().profile;
+        if (!validProfile) {
+          set({ isLoading: true, error: null });
+        }
         try {
           const profile = await userService.getProfile();
           let activeRole = null;
@@ -37,10 +57,8 @@ export const useUserStore = create<UserState>()(
               }
             }
           }
-          set({ profile, activeRole, isLoading: false });
+          set({ profile, activeRole, isLoading: false, error: null });
         } catch (err: any) {
-          // Only clear profile on error if it belongs to a different user
-          // (prevents wiping good cached data on transient network errors)
           console.error('fetchProfile error:', err.message);
           set({ error: err.message, isLoading: false });
         }

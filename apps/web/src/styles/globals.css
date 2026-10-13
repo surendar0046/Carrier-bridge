@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
+/* Font loaded via next/font/google in layout.tsx — no extra @import needed */
 
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
 :root {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Poppins', sans-serif;
 }
 
 html {
-  font-size: 118.75% !important; /* Scale up font sizes globally */
+  font-size: 112.5%;
 }
 
 * {
@@ -18,11 +18,12 @@ html {
 }
 
 body {
-  background-color: #f8fafc;
-  color: #334155;
+  background-color: #ffffff;
+  color: #1e293b;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-sans);
+  font-size: 18px;
 }
 
 body::selection {
@@ -30,11 +31,87 @@ body::selection {
   color: #1e40af;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1 {
   font-family: var(--font-display);
+  font-size: 36px;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #0f172a;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+h4 {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+h5 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+h6 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+p {
+  font-family: var(--font-sans);
+  font-size: 18px;
+}
+
+nav, nav a {
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+
+button, .btn {
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+
+input, select, textarea {
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+label {
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+
+table, th, td {
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+caption, small {
+  font-family: var(--font-sans);
+  font-size: 14px;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -48,19 +125,20 @@ body,
 [class*="bg-\[#020617\]"],
 [class*="bg-slate-950"],
 [class*="bg-slate-900"] {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
   background-image: none !important;
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
-/* Dark neutral card/container backgrounds → light gray */
+/* Dark neutral card/container backgrounds → clean white */
 [class*="bg-slate-800"],
 [class*="bg-white\/5"],
 [class*="bg-slate-900\/50"],
 [class*="bg-slate-800\/50"],
 [class*="bg-slate-950\/40"],
 [class*="bg-slate-950\/30"] {
-  background-color: #f1f5f9 !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 
 /* ── Glass & Card Surfaces ───────────────────────────────────────────────────── */
@@ -387,55 +465,52 @@ div[class*="bg-rose-500\/10"] {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   IMMERSIVE NIRAL AI DARK THEME PRESERVATION
+   NIRAL AI CLEAN WHITE THEME
    ══════════════════════════════════════════════════════════════════════════════ */
 
 .niral-ai-container {
-  background-color: #090d16 !important;
+  background-color: #ffffff !important;
   background-image: 
-    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 10% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 50%) !important;
-  color: #f8fafc !important;
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 10% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%) !important;
+  color: #1e293b !important;
 }
 
-.niral-ai-container *,
 .niral-ai-container h1,
 .niral-ai-container h2,
 .niral-ai-container h3,
 .niral-ai-container h4,
-.niral-ai-container p,
-.niral-ai-container span,
-.niral-ai-container div {
-  color: #e2e8f0 !important;
+.niral-ai-container p {
+  color: #1e293b !important;
 }
 
 .niral-ai-header {
-  background-color: rgba(11, 17, 30, 0.7) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(12px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .niral-ai-header h1 {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 .niral-ai-header button {
-  color: #94a3b8 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  background-color: transparent !important;
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
 }
 
 .niral-ai-header button:hover {
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
 }
 
 .niral-ai-user-bubble {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.25) !important;
 }
 
 .niral-ai-user-bubble * {
@@ -443,58 +518,60 @@ div[class*="bg-rose-500\/10"] {
 }
 
 .niral-ai-assistant-bubble {
-  background-color: rgba(17, 24, 39, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #e2e8f0 !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px 0 rgba(99, 102, 241, 0.05) !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
 }
 
 .niral-ai-assistant-bubble strong {
-  color: #ffffff !important;
+  color: #0f172a !important;
   font-weight: 700 !important;
 }
 
 .niral-ai-thinking-bubble {
-  background-color: rgba(17, 24, 39, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #94a3b8 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.04) !important;
 }
 
 .niral-ai-suggestions button {
-  background-color: rgba(17, 24, 39, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #94a3b8 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .niral-ai-suggestions button:hover {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-  border-color: rgba(59, 130, 246, 0.5) !important;
-  color: #60a5fa !important;
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12) !important;
 }
 
 .niral-ai-input-container {
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background-color: rgba(9, 13, 22, 0.8) !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .niral-ai-textarea {
-  background-color: rgba(17, 24, 39, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
   border-radius: 1rem !important;
   transition: all 0.2s ease !important;
 }
 
 .niral-ai-textarea:focus {
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
 
 .niral-ai-textarea::placeholder {
-  color: #4b5563 !important;
+  color: #94a3b8 !important;
 }
 
 .niral-ai-send-btn {
@@ -505,9 +582,9 @@ div[class*="bg-rose-500\/10"] {
 }
 
 .niral-ai-send-btn:hover:not(:disabled) {
-  background-color: #3b82f6 !important;
+  background-color: #1d4ed8 !important;
   transform: scale(1.02) !important;
-  box-shadow: 0 6px 20px -3px rgba(59, 130, 246, 0.5) !important;
+  box-shadow: 0 6px 20px -3px rgba(37, 99, 235, 0.5) !important;
 }
 
 .niral-ai-input-container label {
@@ -516,8 +593,8 @@ div[class*="bg-rose-500\/10"] {
 }
 
 .niral-ai-input-container label:hover {
-  color: #60a5fa !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #2563eb !important;
+  background-color: #eff6ff !important;
 }
 
 /* ── Premium Card Design System ──────────────────────────────────────────────── */

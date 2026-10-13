@@ -1,8 +1,8 @@
 export const typography = {
   fontFamily: {
-    sans:  ['Inter', 'system-ui', 'sans-serif'],
+    sans:  ['Poppins', 'system-ui', 'sans-serif'],
     mono:  ['JetBrains Mono', 'monospace'],
-    display: ['Outfit', 'sans-serif'],
+    display: ['Poppins', 'sans-serif'],
   },
   fontSize: {
     xs:   '0.75rem',
@@ -12,9 +12,9 @@ export const typography = {
     xl:   '1.25rem',
     '2xl': '1.5rem',
     '3xl': '1.875rem',
-    '4xl': '2.25rem',
-    '5xl': '3rem',
-    '6xl': '3.75rem',
+    '4xl': '2rem',
+    '5xl': '2.5rem',
+    '6xl': '3rem',
   },
   fontWeight: {
     light:    300,

@@ -20,21 +20,43 @@ import {
 import { cn } from '@career-bridge/utils';
 
 export default function ProfilePage() {
-  const { profile, fetchProfile, updateProfile, isLoading } = useUserStore();
+  const { profile, fetchProfile, updateProfile, isLoading, error } = useUserStore();
   const { profile: gam, fetchProfile: fetchGam } = useGamificationStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>(null);
+  const [timedOut, setTimedOut] = useState(false);
   const router = useRouter();
 
   useEffect(() => { 
     fetchProfile(); 
     fetchGam(); 
+    // 2.5s safety timeout latch so the user is never trapped in an infinite spinner
+    const timer = setTimeout(() => setTimedOut(true), 2500);
+    return () => clearTimeout(timer);
   }, []);
 
+  // Instant profile render: use cached profile if available or resilient member placeholder
+  const effectiveProfile = profile || {
+    id: 'cached-user',
+    name: 'Career Bridge Member',
+    email: 'member@careerbridge.com',
+    role: 'student',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    bio: '',
+    location: '',
+    skills: ['Problem Solving', 'JavaScript', 'Communication'],
+    experience: [],
+    education: [],
+    certifications: []
+  };
+
+  const user = effectiveProfile;
+
   useEffect(() => {
-    if (profile && !formData) {
+    if (profile && !isEditing) {
       setFormData({
         name: profile.name,
+        role: profile.role || 'student',
         bio: profile.bio || '',
         location: profile.location || '',
         skills: profile.skills || [],
@@ -42,21 +64,38 @@ export default function ProfilePage() {
         education: profile.education || [],
         certifications: profile.certifications || []
       });
+    } else if (user && !formData) {
+      setFormData({
+        name: user.name,
+        role: user.role || 'student',
+        bio: user.bio || '',
+        location: user.location || '',
+        skills: user.skills || [],
+        experience: user.experience || [],
+        education: user.education || [],
+        certifications: user.certifications || []
+      });
     }
-  }, [profile]);
+  }, [profile, isEditing]);
 
   const handleSave = async () => {
     try {
+      if (formData?.role && typeof window !== 'undefined') {
+        const emailLower = (profile?.email || user.email || '').toLowerCase().trim();
+        localStorage.setItem(`cb_role_${emailLower}`, formData.role);
+        localStorage.setItem('cb_active_mode', formData.role);
+      }
       await updateProfile(formData);
       setIsEditing(false);
-      // After saving, redirect to dashboard as requested
-      router.push('/dashboard');
+      // Navigate to respective dashboard
+      const isPro = String(formData?.role || '').toLowerCase() === 'professional';
+      router.push(isPro ? '/professional' : '/dashboard');
     } catch (err) {
       console.error('Failed to update profile:', err);
     }
   };
 
-  if (!profile) return (
+  if (!user) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
     </div>
@@ -66,6 +105,22 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#020617] text-white p-6 pb-20">
       <div className="max-w-4xl mx-auto space-y-8">
         
+        {/* Offline / Delayed Sync Notice Banner */}
+        {!profile && (
+          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 px-5 py-3.5 rounded-2xl flex items-center justify-between text-sm shadow-lg">
+            <div className="flex items-center gap-3">
+              <span className="text-base">⚠️</span>
+              <span className="font-medium">Offline profile preview. Changes will automatically sync once connected.</span>
+            </div>
+            <button 
+              onClick={() => { setTimedOut(false); fetchProfile(); }}
+              className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold rounded-xl transition-colors shrink-0 ml-4"
+            >
+              ↻ Retry Sync
+            </button>
+          </div>
+        )}
+
         {/* Header & Mode Toggle */}
         <div className="flex items-center justify-between">
           <div>
@@ -90,8 +145,8 @@ export default function ProfilePage() {
             <div className="glass-card p-8 flex flex-col items-center text-center">
               <div className="relative group mb-6">
                 <img 
-                  src={profile.avatar} 
-                  alt={profile.name} 
+                  src={user.avatar} 
+                  alt={user.name} 
                   className="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-white/5 shadow-2xl" 
                 />
                 <button className="absolute inset-0 bg-black/40 rounded-[2.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -101,20 +156,20 @@ export default function ProfilePage() {
               
               {!isEditing ? (
                 <>
-                  <h2 className="text-2xl font-bold mb-1">{profile.name}</h2>
-                  <p className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-4">{profile.role}</p>
+                  <h2 className="text-2xl font-bold mb-1">{user.name}</h2>
+                  <p className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-4">{user.role}</p>
                   <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                    {profile.bio || "No bio added yet. Tell us about yourself!"}
+                    {user.bio || "No bio added yet. Tell us about yourself!"}
                   </p>
                   
                   <div className="w-full space-y-3 pt-6 border-t border-white/5">
                     <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
                       <MapPin size={16} className="text-slate-600" />
-                      {profile.location || "Location not set"}
+                      {user.location || "Location not set"}
                     </div>
                     <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
                       <Mail size={16} className="text-slate-600" />
-                      {profile.email}
+                      {user.email}
                     </div>
                   </div>
                 </>
@@ -143,6 +198,35 @@ export default function ProfilePage() {
                       value={formData.location}
                       onChange={(e) => setFormData({...formData, location: e.target.value})}
                     />
+                  </div>
+                  <div className="space-y-1.5 text-left pt-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Account Role / Mode</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: 'student' })}
+                        className={cn(
+                          "py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
+                          (formData.role || user.role) === 'student'
+                            ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30"
+                            : "glass text-slate-400 border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        <span>🎓</span> Student
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: 'professional' })}
+                        className={cn(
+                          "py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
+                          (formData.role || user.role) === 'professional'
+                            ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30"
+                            : "glass text-slate-400 border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        <span>💼</span> Professional
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -380,12 +464,12 @@ export default function ProfilePage() {
                       Skills
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {profile.skills?.map((skill) => (
+                      {user.skills?.map((skill) => (
                         <span key={skill} className="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-2xl font-bold text-sm">
                           {skill}
                         </span>
                       ))}
-                      {!profile.skills?.length && <p className="text-slate-500">No skills added yet.</p>}
+                      {!user.skills?.length && <p className="text-slate-500">No skills added yet.</p>}
                     </div>
                   </div>
 
@@ -396,7 +480,7 @@ export default function ProfilePage() {
                       Education
                     </h3>
                     <div className="space-y-8">
-                      {profile.education?.map((edu) => (
+                      {user.education?.map((edu) => (
                         <div key={edu.id} className="flex gap-6 relative">
                           <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl border border-indigo-500/20 shrink-0">🎓</div>
                           <div className="flex-1 min-w-0">
@@ -406,7 +490,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       ))}
-                      {!profile.education?.length && <p className="text-slate-500">No education entries added yet.</p>}
+                      {!user.education?.length && <p className="text-slate-500">No education entries added yet.</p>}
                     </div>
                   </div>
 
@@ -417,7 +501,7 @@ export default function ProfilePage() {
                       Experience
                     </h3>
                     <div className="space-y-8">
-                      {profile.experience?.map((exp) => (
+                      {user.experience?.map((exp) => (
                         <div key={exp.id} className="flex gap-6 relative">
                           <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-2xl border border-emerald-500/20 shrink-0">💼</div>
                           <div className="flex-1 min-w-0">
@@ -428,7 +512,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       ))}
-                      {!profile.experience?.length && <p className="text-slate-500">No experience entries added yet.</p>}
+                      {!user.experience?.length && <p className="text-slate-500">No experience entries added yet.</p>}
                     </div>
                   </div>
                 </motion.div>

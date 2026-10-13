@@ -6,7 +6,7 @@ import { useUserStore } from '@career-bridge/store';
 import AnalysisPanel, { AnalysisResult } from './AnalysisPanel';
 import PreviewModal from './PreviewModal';
 
-const AI_URL = 'http://localhost:4000/api/resume/analyze';
+const AI_URL = '/api/resume/analyze';
 
 const inp = 'w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all';
 const label = 'block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider';

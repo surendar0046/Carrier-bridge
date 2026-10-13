@@ -13,17 +13,17 @@ export const SuggestionPanel: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 space-y-3">
-      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quick Actions</h4>
+    <div className="p-4 space-y-3 bg-white">
+      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quick Actions</h4>
       <div className="space-y-2">
         {suggestions.map((item, idx) => (
           <button
             key={idx}
             onClick={() => askCopilot(item.prompt)}
-            className="w-full text-left p-3 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-500/50 rounded-2xl transition group"
+            className="w-full text-left p-3.5 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-400 rounded-2xl transition shadow-sm group"
           >
-            <span className="text-xs font-semibold text-white group-hover:text-blue-400">{item.title}</span>
-            <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{item.prompt}</p>
+            <span className="text-sm font-semibold text-slate-800 group-hover:text-blue-600">{item.title}</span>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-1">{item.prompt}</p>
           </button>
         ))}
       </div>

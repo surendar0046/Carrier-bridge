@@ -9,6 +9,7 @@ type UserRole = 'student' | 'professional';
 export default function SignupPage() {
   const [mounted, setMounted] = React.useState(false);
   const [role, setRole] = useState<UserRole>('student');
+  const [studentTrack, setStudentTrack] = useState<'first_year' | 'fresher'>('first_year');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,42 +20,55 @@ export default function SignupPage() {
   React.useEffect(() => {
     setMounted(true);
     clearError();
+    try {
+      router.prefetch('/quiz');
+    } catch {}
+  }, [clearError, router]);
+
+  // Immediate redirect as soon as user is authenticated
+  React.useEffect(() => {
     if (isInitialized && isAuthenticated) {
+      if (typeof window !== 'undefined' && email) {
+        const emailKey = email.toLowerCase().trim();
+        if (role === 'student') {
+          localStorage.setItem(`cb_student_track_${emailKey}`, studentTrack);
+        } else {
+          localStorage.setItem(`cb_student_track_${emailKey}`, 'professional');
+        }
+      }
       router.replace('/quiz');
     }
-  }, [clearError, isAuthenticated, isInitialized, router]);
+  }, [isInitialized, isAuthenticated, email, role, studentTrack, router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
+    if (typeof window !== 'undefined' && email) {
+      const emailKey = email.toLowerCase().trim();
+      if (role === 'student') {
+        localStorage.setItem(`cb_student_track_${emailKey}`, studentTrack);
+        localStorage.setItem(`cb_role_${emailKey}`, 'student');
+        localStorage.setItem('cb_active_mode', 'student');
+      } else {
+        localStorage.setItem(`cb_student_track_${emailKey}`, 'professional');
+        localStorage.setItem(`cb_role_${emailKey}`, 'professional');
+        localStorage.setItem('cb_active_mode', 'professional');
+      }
+    }
     const ok = await signup(name, email, password, role);
     if (ok) {
-      if (role === 'professional' || name.toLowerCase().includes('rajaprabhu') || email.toLowerCase().includes('rajaprabhu')) {
-        router.push('/professional');
-      } else {
-        router.push('/quiz');
-      }
+      router.replace(role === 'professional' ? '/professional' : '/quiz');
     }
   };
 
-  if (!mounted) return <div className="min-h-screen bg-slate-50" />;
-
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (isInitialized && isAuthenticated) return null;
+  if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans py-8">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans py-8 bg-white">
 
       {/* ── Animated Background ── */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f8fafc] via-[#f5f3ff] to-[#f8fafc]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-white" />
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-violet-300/15 blur-[120px] animate-pulse-slow" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-300/15 blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
         <div className="absolute top-[30%] left-[40%] w-[300px] h-[300px] rounded-full bg-indigo-300/10 blur-[80px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
@@ -177,6 +191,44 @@ export default function SignupPage() {
                 ))}
               </div>
 
+              {/* Student Track Sub-selector */}
+              {role === 'student' && (
+                <div className="p-3 rounded-2xl bg-violet-50/60 border border-violet-100 space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-violet-700">Select Student Level:</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStudentTrack('first_year')}
+                      className={`p-2.5 rounded-xl text-left border text-xs font-bold transition-all ${
+                        studentTrack === 'first_year'
+                          ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'
+                      }`}
+                    >
+                      <div className="text-[11px] font-black">🎓 1st Year</div>
+                      <div className={`text-[9px] font-medium leading-tight mt-0.5 ${studentTrack === 'first_year' ? 'text-violet-100' : 'text-slate-400'}`}>
+                        After 12th Completed
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setStudentTrack('fresher')}
+                      className={`p-2.5 rounded-xl text-left border text-xs font-bold transition-all ${
+                        studentTrack === 'fresher'
+                          ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'
+                      }`}
+                    >
+                      <div className="text-[11px] font-black">🚀 College Fresher</div>
+                      <div className={`text-[9px] font-medium leading-tight mt-0.5 ${studentTrack === 'fresher' ? 'text-violet-100' : 'text-slate-400'}`}>
+                        2nd, 3rd, 4th Year
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Name */}
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
@@ -253,7 +305,7 @@ export default function SignupPage() {
               {/* Terms */}
               <div className="flex items-start gap-3 pt-1">
                 <div className="relative mt-0.5">
-                  <input type="checkbox" id="terms" required className="peer sr-only" />
+                  <input type="checkbox" id="terms" defaultChecked required className="peer sr-only" />
                   <label htmlFor="terms"
                     className="w-4 h-4 rounded flex items-center justify-center cursor-pointer border border-slate-300 peer-checked:border-violet-500 peer-checked:bg-violet-500/10 transition-all"
                     style={{ display: 'flex', width: '16px', height: '16px', minWidth: '16px' }}>

@@ -3,7 +3,7 @@ import { GamificationProfile, LeaderboardEntry, XPEvent } from '@career-bridge/t
 import { ApiResponse } from '@career-bridge/types';
 import { env } from '@career-bridge/config';
 
-const MOCK_GAMIFICATION: GamificationProfile = {
+export const MOCK_GAMIFICATION: GamificationProfile = {
   userId: 'user-001',
   xp: 3450,
   level: 8,
@@ -24,7 +24,7 @@ const MOCK_GAMIFICATION: GamificationProfile = {
   ],
 };
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
+export const MOCK_LEADERBOARD: LeaderboardEntry[] = [
   { rank: 1, userId: 'u1', name: 'Sneha Reddy', avatar: 'https://ui-avatars.com/api/?name=Sneha+Reddy&background=f97316&color=fff', xp: 8900, level: 18, badges: 14, location: 'Bangalore' },
   { rank: 2, userId: 'u2', name: 'Vikram Singh', avatar: 'https://ui-avatars.com/api/?name=Vikram+Singh&background=8b5cf6&color=fff', xp: 7600, level: 16, badges: 11, location: 'Delhi' },
   { rank: 3, userId: 'u3', name: 'Meera Iyer', avatar: 'https://ui-avatars.com/api/?name=Meera+Iyer&background=22c55e&color=fff', xp: 6800, level: 14, badges: 9, location: 'Chennai' },

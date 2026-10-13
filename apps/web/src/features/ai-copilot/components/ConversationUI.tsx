@@ -205,16 +205,16 @@ export const ConversationUI: React.FC = () => {
               </div>
             )}
             <div
-              className={`max-w-[85%] p-3 rounded-2xl ${
+              className={`max-w-[85%] p-3.5 rounded-2xl ${
                 msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-none text-xs font-medium leading-relaxed'
-                  : 'bg-slate-800 text-slate-200 border border-slate-700/60 rounded-bl-none'
+                  ? 'bg-blue-600 text-white rounded-br-none text-sm font-medium leading-relaxed shadow-sm'
+                  : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'
               }`}
             >
               {msg.role === 'assistant' ? (
                 <MarkdownMessage content={msg.content} />
               ) : (
-                <span className="text-xs">{msg.content}</span>
+                <span className="text-sm">{msg.content}</span>
               )}
             </div>
           </div>
@@ -226,11 +226,11 @@ export const ConversationUI: React.FC = () => {
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-500 flex items-center justify-center text-white text-[10px] shrink-0">
               ✨
             </div>
-            <div className="bg-slate-800 border border-slate-700/60 px-4 py-2.5 rounded-2xl rounded-bl-none">
+            <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-2xl rounded-bl-none shadow-sm">
               <div className="flex gap-1 items-center">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -238,15 +238,15 @@ export const ConversationUI: React.FC = () => {
 
         {/* Quick prompts — show only for new conversations */}
         {isNewConversation && !isGenerating && (
-          <div className="grid grid-cols-2 gap-1.5 mt-2">
+          <div className="grid grid-cols-2 gap-2 mt-2">
             {quickPrompts.map((qp) => (
               <button
                 key={qp.prompt}
                 onClick={() => askCopilot(qp.prompt)}
-                className="flex items-center gap-1.5 p-2 bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700/50 hover:border-blue-500/40 rounded-xl text-left transition group"
+                className="flex items-center gap-2 p-2.5 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-400 rounded-xl text-left transition shadow-sm group"
               >
-                <span className="text-sm">{qp.icon}</span>
-                <span className="text-[10px] text-slate-300 group-hover:text-white font-medium leading-tight">
+                <span className="text-base">{qp.icon}</span>
+                <span className="text-xs text-slate-700 group-hover:text-blue-700 font-semibold leading-tight">
                   {qp.label}
                 </span>
               </button>
@@ -259,25 +259,25 @@ export const ConversationUI: React.FC = () => {
 
       {/* Input area */}
       <form onSubmit={handleSend} className="flex flex-col gap-1.5 shrink-0">
-        <div className="flex items-end gap-2 bg-slate-950 border border-slate-700 hover:border-slate-600 focus-within:border-blue-500 rounded-xl transition px-3 py-2">
+        <div className="flex items-end gap-2 bg-white border border-slate-300 hover:border-slate-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 rounded-2xl transition px-3.5 py-2.5 shadow-sm">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask anything — code, career, or general questions..."
             rows={1}
-            className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none resize-none leading-relaxed max-h-24 overflow-y-auto"
-            style={{ minHeight: '20px' }}
+            className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none leading-relaxed max-h-24 overflow-y-auto"
+            style={{ minHeight: '22px' }}
           />
           <button
             type="submit"
             disabled={!input.trim() || isGenerating}
-            className="shrink-0 w-7 h-7 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition flex items-center justify-center"
+            className="shrink-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl transition flex items-center justify-center shadow-sm"
           >
             ↑
           </button>
         </div>
-        <p className="text-[9px] text-slate-600 text-center">
+        <p className="text-[10px] text-slate-400 text-center font-medium">
           Shift+Enter for new line · Enter to send
         </p>
       </form>

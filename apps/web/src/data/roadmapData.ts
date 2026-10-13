@@ -127,3 +127,69 @@ export const ACCENT_COLORS: Record<string, { bg: string; border: string; text: s
   amber:   { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)', text: '#f59e0b', badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
   pink:    { bg: 'rgba(236,72,153,0.08)', border: 'rgba(236,72,153,0.25)', text: '#ec4899', badge: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
 };
+
+export function getRoleRoadmap(roleName: string): RoleRoadmap {
+  if (ROLE_ROADMAPS[roleName]) {
+    return ROLE_ROADMAPS[roleName];
+  }
+
+  // Common aliases
+  if (roleName === 'Full-Stack Developer' && ROLE_ROADMAPS['Full Stack Developer']) return ROLE_ROADMAPS['Full Stack Developer'];
+  if (roleName === 'AI/ML Engineer' && ROLE_ROADMAPS['AI / ML Engineer']) return ROLE_ROADMAPS['AI / ML Engineer'];
+  if (roleName === 'UI/UX Designer' && ROLE_ROADMAPS['Product Designer (UI/UX)']) return ROLE_ROADMAPS['Product Designer (UI/UX)'];
+  if (roleName === 'Product Designer' && ROLE_ROADMAPS['Product Designer (UI/UX)']) return ROLE_ROADMAPS['Product Designer (UI/UX)'];
+  if (roleName === 'Cloud Engineer' && ROLE_ROADMAPS['Cloud / Solutions Architect']) return ROLE_ROADMAPS['Cloud / Solutions Architect'];
+  if (roleName === 'DevOps Engineer' && ROLE_ROADMAPS['Backend Developer']) return ROLE_ROADMAPS['Backend Developer'];
+  if (roleName === 'Frontend Developer' && ROLE_ROADMAPS['Full Stack Developer']) return ROLE_ROADMAPS['Full Stack Developer'];
+  if (roleName === 'Software Developer' && ROLE_ROADMAPS['Backend Developer']) return ROLE_ROADMAPS['Backend Developer'];
+
+  // Dynamic tailored roadmap generator for any specific role
+  return {
+    emoji: '🚀',
+    duration: '6–9 months',
+    salary: '₹6L–₹22L',
+    demand: 94,
+    phases: [
+      {
+        id: 1,
+        title: 'Core Fundamentals & Tools',
+        duration: 'Weeks 1–6',
+        accent: 'blue',
+        skills: [`${roleName} Core Principles`, 'Git & Version Control', 'Command Line & Dev Tools', 'Problem Solving Fundamentals'],
+        projects: ['Foundational Starter Project', 'Personal Technical Showcase'],
+        tools: ['VS Code', 'GitHub', 'Documentation Guides'],
+        milestone: `Master essential principles of ${roleName}`
+      },
+      {
+        id: 2,
+        title: 'Applied Competencies & Frameworks',
+        duration: 'Weeks 7–16',
+        accent: 'emerald',
+        skills: ['Industry Standard Frameworks', 'Hands-on Workflow Execution', 'Testing & Verification', 'Collaboration Best Practices'],
+        projects: ['Intermediate Portfolio Project', 'Integrated Workflow Simulator'],
+        tools: ['Postman', 'Figma / Docker', 'CLI Automation'],
+        milestone: 'Ship a verified interactive project end-to-end'
+      },
+      {
+        id: 3,
+        title: 'Advanced Architecture & Integration',
+        duration: 'Weeks 17–28',
+        accent: 'violet',
+        skills: ['Scalable Architecture', 'Performance Optimization', 'Security Protocols', 'AI Integration for Efficiency'],
+        projects: ['Production-Grade Real World Application', 'Open Source Contribution'],
+        tools: ['Cloud Infrastructure', 'CI/CD Pipelines', 'Monitoring'],
+        milestone: `Deploy a production-ready system for ${roleName}`
+      },
+      {
+        id: 4,
+        title: 'Portfolio, Interview & Industry Readiness',
+        duration: 'Weeks 29–36',
+        accent: 'amber',
+        skills: ['System Design & Technical Interviews', 'Portfolio Polish & Case Studies', 'Resume Optimization', 'Team Leadership'],
+        projects: ['Live Case Study Portfolio', 'Capstone Technical Demonstration'],
+        tools: ['LinkedIn', 'GitHub Portfolio', 'Mock Interview OS'],
+        milestone: `Land high-tier placement offers as a ${roleName}`
+      }
+    ]
+  };
+}

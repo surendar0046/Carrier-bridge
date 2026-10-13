@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { courseService } from '@career-bridge/services';
+import { courseService, MOCK_COURSES } from '@career-bridge/services';
 import { Course } from '@career-bridge/types';
 import Link from 'next/link';
 
@@ -12,8 +12,8 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>(() => MOCK_COURSES.filter((c) => c.isFree));
+  const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'certifications' | 'enrolled'>('certifications');
 
   useEffect(() => {

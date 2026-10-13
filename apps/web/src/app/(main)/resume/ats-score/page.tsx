@@ -12,7 +12,7 @@ import RoleCombobox from '../builder/RoleCombobox';
 import AnalysisPanel, { AnalysisResult } from '../builder/AnalysisPanel';
 import { env } from '@career-bridge/services';
 
-const AI_URL = `${env.apiUrl}/resume/analyze`;
+const AI_URL = '/api/resume/analyze';
 
 export default function ATSScorePage() {
   const [text, setText] = useState('');

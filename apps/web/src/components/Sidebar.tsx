@@ -11,6 +11,7 @@ const STUDENT_NAV = [
   { href: '/jobs', label: 'Job Board', icon: '💼' },
   { href: '/courses', label: 'Learning', icon: '🎓' },
   { href: '/resume', label: 'Resume AI', icon: '📄' },
+  { href: '/mentor', label: 'Mentorship', icon: '👨‍🏫' },
   { href: '/ai-copilot', label: 'Niral AI', icon: '✨' },
   { href: '/profile', label: 'Profile', icon: '👤' },
 ];
@@ -23,6 +24,7 @@ const PROFESSIONAL_NAV = [
   { href: '/professional/resources', label: 'Resources', icon: '📚' },
   { href: '/professional/analytics', label: 'Insights & Analytics', icon: '📈' },
   { href: '/professional/reputation', label: 'Reputation & Badges', icon: '⭐' },
+  { href: '/mentor/sessions', label: 'Live Mentoring Sessions', icon: '👨‍🏫' },
   { href: '/ai-copilot', label: 'Niral AI', icon: '✨' },
   { href: '/profile', label: 'Profile', icon: '👤' },
 ];
@@ -38,6 +40,8 @@ const NOTIFICATIONS = [
 
 // ── Search Results ──────────────────────────────────────────────────────────
 const SEARCH_RESULTS = [
+  { label: '1-on-1 Mentorship Booking', href: '/mentor', icon: '👨‍🏫', category: 'Mentors' },
+  { label: 'My Mentorship Bookings', href: '/mentor/sessions', icon: '📅', category: 'Mentors' },
   { label: 'Pro Discussion Forum (LeetCode Solutions)', href: '/professional/forum', icon: '💬', category: 'Forum' },
   { label: 'Niral AI Resume Mock Interview', href: '/professional/mock-interview', icon: '🎙️', category: 'Mock Interview' },
   { label: 'Share a Pro Resource', href: '/professional/resources/new', icon: '📤', category: 'Resources' },
@@ -82,66 +86,85 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SearchPanel({ onClose }: { onClose: () => void }) {
+function SearchPanel({ onClose, onNavigate }: { onClose: () => void; onNavigate?: () => void }) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const results = query.trim()
-    ? SEARCH_RESULTS.filter(r => r.label.toLowerCase().includes(query.toLowerCase()))
+  const qClean = query.trim().toLowerCase();
+  const qStem = qClean.endsWith('s') && qClean.length > 3 ? qClean.slice(0, -1) : qClean;
+  const results = qClean
+    ? SEARCH_RESULTS.filter(r => 
+        r.label.toLowerCase().includes(qClean) || 
+        r.label.toLowerCase().includes(qStem) ||
+        r.category.toLowerCase().includes(qClean) ||
+        r.category.toLowerCase().includes(qStem)
+      )
     : SEARCH_RESULTS.slice(0, 5);
 
   return (
-    <div className="absolute top-full right-0 mt-3 w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl shadow-slate-200/80 z-50 overflow-hidden animate-fade-in">
-      <div className="p-4 border-b border-slate-100">
-        <div className="relative">
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search pages, features…"
-            className="w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm pl-9 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
-          />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-          {query && (
-            <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="absolute top-full right-0 mt-3 w-96 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-3xl shadow-2xl shadow-slate-200/80 z-50 overflow-hidden animate-fade-in">
+        <div className="p-4 border-b border-slate-100">
+          <div className="relative">
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search pages, features…"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm pl-9 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            {query && (
+              <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+            )}
+          </div>
+        </div>
+        <div className="max-h-72 overflow-y-auto py-2">
+          {results.length === 0 ? (
+            <div className="text-center py-6 text-slate-400 text-xs font-semibold">No results found</div>
+          ) : (
+            results.map(r => (
+              <Link key={r.href} href={r.href} onClick={() => { onClose(); onNavigate?.(); }}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all group">
+                <span className="text-lg">{r.icon}</span>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">{r.label}</div>
+                  <div className="text-[10px] text-slate-400">{r.category}</div>
+                </div>
+                <span className="text-slate-300 group-hover:text-blue-400 transition-colors text-xs">→</span>
+              </Link>
+            ))
           )}
         </div>
       </div>
-      <div className="max-h-72 overflow-y-auto py-2">
-        {results.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-xs font-semibold">No results found</div>
-        ) : (
-          results.map(r => (
-            <Link key={r.href} href={r.href} onClick={onClose}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-all group">
-              <span className="text-lg">{r.icon}</span>
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">{r.label}</div>
-                <div className="text-[10px] text-slate-400">{r.category}</div>
-              </div>
-              <span className="text-slate-300 group-hover:text-blue-400 transition-colors text-xs">→</span>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
+    </>
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname();
-  const { profile } = useUserStore();
+  const { profile, updateProfile } = useUserStore();
   const [showNotif, setShowNotif] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
 
   const roleLower = String(profile?.role || '').toLowerCase();
   const isProfessional =
     roleLower === 'professional' ||
     roleLower === 'mentor' ||
     (profile?.email || '').toLowerCase().includes('rajaprabhu') ||
-    (profile?.name || '').toLowerCase().includes('rajaprabhu');
+    (profile?.name || '').toLowerCase().includes('rajaprabhu') ||
+    (profile?.email || '').toLowerCase().includes('shriraam') ||
+    (profile?.name || '').toLowerCase().includes('shriraam') ||
+    (profile?.email || '').toLowerCase().includes('shriram') ||
+    (profile?.name || '').toLowerCase().includes('shriram');
   const NAV = isProfessional ? PROFESSIONAL_NAV : STUDENT_NAV;
   const unreadCount = NOTIFICATIONS.filter(n => !n.read).length;
 
@@ -157,6 +180,16 @@ export function Sidebar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const handleToggleMode = async () => {
+    const nextRole = isProfessional ? 'student' : 'professional';
+    if (typeof window !== 'undefined') {
+      const emailLower = (profile?.email || '').toLowerCase().trim();
+      localStorage.setItem(`cb_role_${emailLower}`, nextRole);
+      localStorage.setItem('cb_active_mode', nextRole);
+    }
+    await updateProfile({ role: nextRole as any });
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Search + Notifications row */}
@@ -170,7 +203,7 @@ export function Sidebar() {
             <span className="text-xs text-slate-400 group-hover:text-slate-600 transition-colors flex-1">Search…</span>
             <span className="text-[10px] text-slate-300 font-mono hidden sm:block">⌘K</span>
           </button>
-          {showSearch && <SearchPanel onClose={() => setShowSearch(false)} />}
+          {showSearch && <SearchPanel onClose={() => setShowSearch(false)} onNavigate={onNavigate} />}
         </div>
 
         {/* Notifications */}
@@ -189,13 +222,26 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Role badge */}
+      {/* Role badge (Interactive 1-Click Mode Switcher) */}
       {profile && (
         <div className="px-4 mb-3">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest ${isProfessional ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
-            <span>{isProfessional ? '💼' : '🎓'}</span>
-            {isProfessional ? 'Professional Mode' : 'Student Mode'}
-          </div>
+          <button
+            onClick={handleToggleMode}
+            title="Click to switch between Professional Mode and Student Mode"
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-200 group ${
+              isProfessional 
+                ? 'bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200/80 shadow-sm' 
+                : 'bg-blue-50 hover:bg-blue-100/80 text-blue-700 border border-blue-200/80 shadow-sm'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{isProfessional ? '💼' : '🎓'}</span>
+              <span>{isProfessional ? 'Professional Mode' : 'Student Mode'}</span>
+            </div>
+            <span className="text-[9px] font-bold opacity-60 group-hover:opacity-100 transition-opacity bg-white/90 px-1.5 py-0.5 rounded border border-slate-200/80">
+              Switch ⇄
+            </span>
+          </button>
         </div>
       )}
 
@@ -205,11 +251,20 @@ export function Sidebar() {
           {isProfessional ? 'Pro Features' : 'Main Menu'}
         </div>
         {NAV.map(({ href, label, icon }) => {
-          const active = pathname === href || (href !== '/professional' && href !== '/dashboard' && pathname?.startsWith(href));
+          const active = pendingHref
+            ? pendingHref === href
+            : (pathname === href || (href !== '/professional' && href !== '/dashboard' && pathname?.startsWith(href)));
           return (
             <Link
               key={href}
               href={href}
+              onClick={() => {
+                setPendingHref(href);
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new Event('cb-nav-start'));
+                }
+                onNavigate?.();
+              }}
               className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 group ${
                 active
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20 translate-x-1'

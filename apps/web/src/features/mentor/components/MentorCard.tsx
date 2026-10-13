@@ -25,6 +25,16 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onBook }) => {
               <span className="text-xs font-bold text-amber-400">⭐ {mentor.rating || 4.9}</span>
               <span className="text-[11px] text-slate-500">({mentor.reviewCount || 42} reviews)</span>
             </div>
+            {mentor.phone && mentor.email && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[10px]">
+                <span className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  WA: +91 {mentor.phone}
+                </span>
+                <span className="text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 truncate max-w-[140px]">
+                  {mentor.email}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -38,7 +48,7 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onBook }) => {
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
-        <span className="text-xs font-bold text-slate-300">${mentor.hourlyRate || 80}/hr</span>
+        <span className="text-xs font-bold text-slate-300">₹{mentor.hourlyRate || 1500}/hr</span>
         <div className="flex items-center gap-2">
           <Link
             href={`/mentor/${mentor.id}`}

@@ -22,25 +22,53 @@ export async function GET(req: NextRequest) {
     jobs = jobs.filter(j => j.source === sourceFilter.toLowerCase());
   }
 
+  const roleParam     = (searchParams.get('role')        || '').toLowerCase().trim();
+
   // ── 1. Keyword / query filter ───────────────────────────────────────────────
   if (rawQuery) {
-    const terms = rawQuery.split(/\s+/).filter(Boolean);
+    const terms = rawQuery.replace(/[-_]/g, ' ').split(/\s+/).filter(Boolean);
     jobs = jobs.filter(j => {
       const hay = [j.title, j.company, j.location, ...(j.skills || []), j.description || '']
         .join(' ')
-        .toLowerCase();
+        .toLowerCase()
+        .replace(/[-_]/g, ' ');
       return terms.every(t => hay.includes(t));
     });
   }
 
-  // ── 2. Title / role match filter (from category matchKeywords) ─────────────
-  if (titleFilter) {
-    const kwds = titleFilter.split(',').map(k => k.trim()).filter(Boolean);
+  // ── 2. Role filter or Title / category match filter ─────────────────────────
+  if (roleParam) {
+    // Break into base tokens and search across title and skills
+    const roleTokens = roleParam.replace(/[-_]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+    jobs = jobs.filter(j => {
+      const hay = [j.title, ...(j.skills || []), j.description || '']
+        .join(' ')
+        .toLowerCase()
+        .replace(/[-_]/g, ' ');
+      // If role contains fullstack/devops etc. check primary keywords
+      if (roleParam.includes('full') || roleParam.includes('stack')) {
+        return hay.includes('full stack') || hay.includes('fullstack') || hay.includes('mern') || hay.includes('react') || hay.includes('software');
+      }
+      if (roleParam.includes('devops') || roleParam.includes('cloud')) {
+        return hay.includes('devops') || hay.includes('cloud') || hay.includes('sre') || hay.includes('docker') || hay.includes('kubernetes') || hay.includes('aws');
+      }
+      if (roleParam.includes('data')) {
+        return hay.includes('data') || hay.includes('analytics') || hay.includes('sql') || hay.includes('machine learning');
+      }
+      if (roleParam.includes('ai') || roleParam.includes('ml')) {
+        return hay.includes('ai') || hay.includes('ml') || hay.includes('machine learning') || hay.includes('deep learning') || hay.includes('nlp');
+      }
+      if (roleParam.includes('cyber') || roleParam.includes('security')) {
+        return hay.includes('security') || hay.includes('cyber') || hay.includes('soc') || hay.includes('penetration');
+      }
+      return roleTokens.some(t => hay.includes(t));
+    });
+  } else if (titleFilter) {
+    const kwds = titleFilter.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
     if (kwds.length > 0) {
       jobs = jobs.filter(j => {
-        const title = j.title.toLowerCase();
-        const desc  = (j.description || '').toLowerCase();
-        return kwds.some(k => title.includes(k) || desc.includes(k));
+        const hay = [j.title, ...(j.skills || []), j.description || ''].join(' ').toLowerCase();
+        return kwds.some(k => hay.includes(k));
       });
     }
   }

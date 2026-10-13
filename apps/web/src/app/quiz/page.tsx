@@ -113,12 +113,51 @@ export default function QuizPage() {
     }
   };
 
+  const handleSelectRole = (roleName: string) => {
+    setSelectedRole(roleName);
+    if (typeof window !== 'undefined') {
+      const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+      if (emailKey) {
+        try {
+          const stored = localStorage.getItem(`cb_prefs_${emailKey}`);
+          const prefs = stored ? JSON.parse(stored) : {};
+          prefs.activeRole = roleName;
+          localStorage.setItem(`cb_prefs_${emailKey}`, JSON.stringify(prefs));
+        } catch {}
+      }
+      try {
+        const guestStored = localStorage.getItem('cb_guest_prefs');
+        const prefs = guestStored ? JSON.parse(guestStored) : {};
+        prefs.activeRole = roleName;
+        localStorage.setItem('cb_guest_prefs', JSON.stringify(prefs));
+      } catch {}
+      window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: roleName }));
+    }
+  };
+
   const generateRecommendation = (currentAnswers = answers) => {
     setTimeout(() => {
       const rec = getCareerRecommendation(track || 'first_year', currentAnswers);
       setRecommendation(rec);
       setSelectedRole(rec.role);
       setStep(questions.length + 1);
+
+      if (typeof window !== 'undefined') {
+        const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+        const prefs = {
+          hasCompletedTest: true,
+          studentTrack: track,
+          recommendation: rec,
+          activeRole: rec.role,
+        };
+        if (emailKey) {
+          localStorage.setItem(`cb_prefs_${emailKey}`, JSON.stringify(prefs));
+          localStorage.setItem(`cb_test_completed_${emailKey}`, 'true');
+        }
+        localStorage.setItem('cb_guest_prefs', JSON.stringify(prefs));
+        localStorage.setItem('cb_recommendation', JSON.stringify(rec));
+        window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: rec.role }));
+      }
     }, 2800);
   };
 
@@ -136,21 +175,23 @@ export default function QuizPage() {
   // Permanent completion marker so test NEVER repeats for this user
   const markTestCompleted = (finalRole?: string) => {
     if (typeof window === 'undefined') return;
+    const roleChosen = finalRole || selectedRole || recommendation?.role || 'Full-Stack Developer';
     const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+    const prefs = {
+      hasCompletedTest: true,
+      studentTrack: track,
+      recommendation: recommendation,
+      activeRole: roleChosen,
+    };
     if (emailKey) {
       localStorage.setItem(`cb_test_completed_${emailKey}`, 'true');
-      try {
-        const prefsStr = localStorage.getItem(`cb_prefs_${emailKey}`);
-        const prefs = prefsStr ? JSON.parse(prefsStr) : {};
-        prefs.hasCompletedTest = true;
-        prefs.studentTrack = track;
-        if (recommendation) {
-          prefs.recommendation = recommendation;
-          prefs.activeRole = finalRole || selectedRole || recommendation.role;
-        }
-        localStorage.setItem(`cb_prefs_${emailKey}`, JSON.stringify(prefs));
-      } catch {}
+      localStorage.setItem(`cb_prefs_${emailKey}`, JSON.stringify(prefs));
     }
+    localStorage.setItem('cb_guest_prefs', JSON.stringify(prefs));
+    if (recommendation) {
+      localStorage.setItem('cb_recommendation', JSON.stringify({ ...recommendation, role: roleChosen }));
+    }
+    window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: roleChosen }));
     if (updateProfile) {
       updateProfile({ hasCompletedAssessment: true } as any).catch(() => {});
     }
@@ -570,7 +611,7 @@ export default function QuizPage() {
 
                 {/* Select button */}
                 <button
-                  onClick={() => setSelectedRole(recommendation.role)}
+                  onClick={() => handleSelectRole(recommendation.role)}
                   className={cn(
                     "w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
                     selectedRole === recommendation.role
@@ -605,7 +646,7 @@ export default function QuizPage() {
                       return (
                         <div
                           key={closeRole.role}
-                          onClick={() => setSelectedRole(closeRole.role)}
+                          onClick={() => handleSelectRole(closeRole.role)}
                           className={cn(
                             "p-5 rounded-2xl bg-slate-900/80 border transition-all cursor-pointer space-y-3 relative group",
                             isSelected

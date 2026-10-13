@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { courseService, MOCK_COURSES } from '@career-bridge/services';
 import { Course } from '@career-bridge/types';
 import Link from 'next/link';
+import { useStudentCareerMatch } from '@/hooks/useStudentCareerMatch';
 
 const LEVEL_COLOR: Record<string, string> = {
   BEGINNER:     'bg-emerald-500/20 text-emerald-400',
@@ -12,6 +13,15 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 export default function CoursesPage() {
+  const {
+    hasCompletedQuiz,
+    primaryRole,
+    primaryConfidence,
+    closeRoles,
+    activeRole,
+    setActiveRole,
+  } = useStudentCareerMatch();
+
   const [courses, setCourses] = useState<Course[]>(() => MOCK_COURSES.filter((c) => c.isFree));
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'certifications' | 'enrolled'>('certifications');
@@ -63,7 +73,59 @@ export default function CoursesPage() {
 
         {/* ── Free Certifications Tab ─────────────────────────────────────── */}
         {tab === 'certifications' && (
-          <div className="space-y-12">
+          <div className="space-y-8">
+            {/* AI Matched Role Quick Navigation Card */}
+            {hasCompletedQuiz && (primaryRole || activeRole) && (
+              <div className="p-5 md:p-6 rounded-2xl bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-violet-900/30 border border-blue-500/30 shadow-xl backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-300 text-[11px] font-black uppercase tracking-wider">
+                      🎯 Your Quiz Recommended Path
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      Active: <strong className="text-white">{activeRole || primaryRole}</strong>
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">
+                    Certifications & Courses for {activeRole || primaryRole}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {primaryRole && (
+                      <button
+                        onClick={() => setActiveRole(primaryRole)}
+                        className={`text-xs px-3 py-1 rounded-lg border font-semibold transition-all ${
+                          activeRole === primaryRole
+                            ? 'bg-blue-600 border-blue-400 text-white'
+                            : 'bg-slate-900/70 border-slate-700 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        🌟 {primaryRole} ({primaryConfidence}%)
+                      </button>
+                    )}
+                    {closeRoles.map((cr, idx) => (
+                      <button
+                        key={cr.role}
+                        onClick={() => setActiveRole(cr.role)}
+                        className={`text-xs px-3 py-1 rounded-lg border font-semibold transition-all ${
+                          activeRole === cr.role
+                            ? 'bg-violet-600 border-violet-400 text-white'
+                            : 'bg-slate-900/70 border-slate-700 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        ⇄ #{idx + 2} {cr.role} ({cr.confidence}%)
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Link
+                  href="/courses/certifications"
+                  className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 whitespace-nowrap self-start md:self-auto"
+                >
+                  View Certifications for {activeRole || primaryRole} →
+                </Link>
+              </div>
+            )}
             {/* Hero CTA for certifications page */}
             <div className="relative bg-gradient-to-r from-violet-600/20 via-blue-600/20 to-emerald-600/20 border border-white/10 rounded-2xl p-8 overflow-hidden">
               <div className="absolute inset-0 pointer-events-none">

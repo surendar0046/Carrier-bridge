@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Job } from '@career-bridge/types';
 import { INDIA_JOBS } from '@/app/api/jobs/jobsData';
+import { useStudentCareerMatch, getKeywordsForRole } from '@/hooks/useStudentCareerMatch';
 
 // ── Category presets — query sent to API + title keywords for filtering ────────
 const CATEGORIES = [
@@ -96,6 +97,16 @@ function formatSalary(salary: any): string {
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function JobsPage() {
+  const {
+    hasCompletedQuiz,
+    primaryRole,
+    primaryConfidence,
+    closeRoles,
+    activeRole,
+    setActiveRole,
+    resetFilter,
+  } = useStudentCareerMatch();
+
   const [keyword,        setKeyword]        = useState('');
   const [city,           setCity]           = useState('🇮🇳 All India');
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[0] | null>(null);
@@ -114,6 +125,7 @@ export default function JobsPage() {
   const fetchJobs = useCallback(async (opts: {
     q?:           string;
     titleFilter?: string;
+    role?:        string;
     page?:        number;
     append?:      boolean;
     source?:      string;
@@ -125,6 +137,7 @@ export default function JobsPage() {
       const params = new URLSearchParams();
       if (opts.q)           params.set('q', opts.q);
       if (opts.titleFilter) params.set('titleFilter', opts.titleFilter);
+      if (opts.role)        params.set('role', opts.role);
       
       const activeSource = opts.source !== undefined ? opts.source : sourceFilter;
       if (activeSource) params.set('source', activeSource);
@@ -169,25 +182,40 @@ export default function JobsPage() {
   }, []);
 
   // ── doSearch ──────────────────────────────────────────────────────────────
-  const doSearch = useCallback((resetPage = true, cat?: typeof CATEGORIES[0] | null) => {
+  const doSearch = useCallback((
+    resetPage = true, 
+    cat?: typeof CATEGORIES[0] | null,
+    customRole?: string | null,
+    customType?: string,
+    customKeyword?: string
+  ) => {
     const activeCat = cat !== undefined ? cat : activeCategory;
+    const kw = customKeyword !== undefined ? customKeyword : keyword;
+    const effectiveRole = customRole !== undefined ? customRole : (!kw && !activeCat ? activeRole : null);
+    const currentType = customType !== undefined ? customType : typeFilter;
     const pg = resetPage ? 1 : page;
     if (resetPage) { setAllJobs([]); setPage(1); setHasMore(true); }
+
     fetchJobs({
-      q:           activeCat ? activeCat.query : buildQuery(keyword, city),
-      titleFilter: activeCat?.matchKeywords?.join(',') || '',
+      q:           activeCat ? activeCat.query : (kw ? buildQuery(kw, city) : (effectiveRole || '')),
+      titleFilter: activeCat?.matchKeywords?.join(',') || (effectiveRole ? getKeywordsForRole(effectiveRole).join(',') : ''),
+      role:        effectiveRole || '',
       page:        pg,
       append:      !resetPage,
       source:      sourceFilter,
-      type:        typeFilter,
+      type:        currentType,
     });
-  }, [keyword, city, activeCategory, page, fetchJobs, buildQuery, sourceFilter, typeFilter]);
+  }, [keyword, city, activeCategory, page, fetchJobs, buildQuery, sourceFilter, typeFilter, activeRole]);
 
-  // Initial load
+  // Reactive load on activeRole change or initial mount
   useEffect(() => {
-    doSearch(true, null);
+    if (hasCompletedQuiz && activeRole) {
+      doSearch(true, null, activeRole, typeFilter, '');
+    } else {
+      doSearch(true, null, null, typeFilter, keyword);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasCompletedQuiz, activeRole]);
 
   // Category change
   const handleCategory = (cat: typeof CATEGORIES[0]) => {
@@ -196,7 +224,7 @@ export default function JobsPage() {
     setTypeFilter('');
     setSourceFilter('');
     setRemoteOnly(false);
-    doSearch(true, cat);
+    doSearch(true, cat, null, '', '');
   };
 
   // Source change
@@ -206,8 +234,9 @@ export default function JobsPage() {
     setPage(1);
     setHasMore(true);
     fetchJobs({
-      q:           activeCategory ? activeCategory.query : buildQuery(keyword, city),
-      titleFilter: activeCategory?.matchKeywords?.join(',') || '',
+      q:           activeCategory ? activeCategory.query : (keyword ? buildQuery(keyword, city) : (activeRole || '')),
+      titleFilter: activeCategory?.matchKeywords?.join(',') || (activeRole ? getKeywordsForRole(activeRole).join(',') : ''),
+      role:        activeCategory || keyword ? '' : (activeRole || ''),
       page:        1,
       append:      false,
       source:      src,
@@ -222,8 +251,9 @@ export default function JobsPage() {
     setPage(1);
     setHasMore(true);
     fetchJobs({
-      q:           activeCategory ? activeCategory.query : buildQuery(keyword, city),
-      titleFilter: activeCategory?.matchKeywords?.join(',') || '',
+      q:           activeCategory ? activeCategory.query : (keyword ? buildQuery(keyword, city) : (activeRole || '')),
+      titleFilter: activeCategory?.matchKeywords?.join(',') || (activeRole ? getKeywordsForRole(activeRole).join(',') : ''),
+      role:        activeCategory || keyword ? '' : (activeRole || ''),
       page:        1,
       append:      false,
       source:      sourceFilter,
@@ -307,6 +337,138 @@ export default function JobsPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* ── AI Tailored Recommendations Banner (Quiz Matched) ──────────── */}
+        {hasCompletedQuiz && (primaryRole || activeRole) && (
+          <div className="mb-8 p-5 md:p-6 rounded-3xl bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-purple-900/30 border border-blue-500/30 shadow-2xl shadow-blue-950/50 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-300 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                    AI Career Match
+                  </span>
+                  <span className="text-xs text-slate-400 font-semibold">
+                    Personalized for Your Quiz Results
+                  </span>
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 flex-wrap">
+                  <span>Opportunities for</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-400 font-extrabold underline decoration-blue-500/40 underline-offset-4">
+                    {activeRole || primaryRole}
+                  </span>
+                  {activeRole === primaryRole && primaryConfidence ? (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold">
+                      {primaryConfidence}% Match
+                    </span>
+                  ) : null}
+                </h2>
+                <p className="text-xs text-slate-300">
+                  Showing job offers & internships matching your quiz profile. Tap an alternative match or search any role to explore more.
+                </p>
+              </div>
+
+              {/* Quick Offer Type Tabs inside banner */}
+              <div className="flex items-center gap-1 bg-slate-950/70 p-1.5 rounded-2xl border border-white/10 self-start md:self-auto">
+                <button
+                  onClick={() => handleTypeChange('')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    typeFilter === ''
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  All Offers ({totalCount})
+                </button>
+                <button
+                  onClick={() => handleTypeChange('FULL_TIME')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    typeFilter === 'FULL_TIME'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>💼 Jobs</span>
+                </button>
+                <button
+                  onClick={() => handleTypeChange('INTERNSHIP')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    typeFilter === 'INTERNSHIP'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/30'
+                      : 'text-emerald-400 hover:text-emerald-300'
+                  }`}
+                >
+                  <span>🎓 Interns</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Role switchers pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
+              <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mr-1">
+                Your Matches:
+              </span>
+
+              {/* Top 1 Fit Role */}
+              {primaryRole && (
+                <button
+                  onClick={() => {
+                    setActiveCategory(null);
+                    setKeyword('');
+                    setActiveRole(primaryRole);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    activeRole === primaryRole
+                      ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white'
+                  }`}
+                >
+                  <span>🌟 {primaryRole}</span>
+                  <span className="text-[10px] opacity-80">({primaryConfidence}%)</span>
+                </button>
+              )}
+
+              {/* Top 2 Close Matches */}
+              {closeRoles.map((cr, idx) => (
+                <button
+                  key={cr.role}
+                  onClick={() => {
+                    setActiveCategory(null);
+                    setKeyword('');
+                    setActiveRole(cr.role);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    activeRole === cr.role
+                      ? 'bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/30'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-violet-500/50 hover:text-violet-200'
+                  }`}
+                >
+                  <span>⇄ #{idx + 2} {cr.role}</span>
+                  <span className="text-[10px] opacity-80">({cr.confidence}%)</span>
+                </button>
+              ))}
+
+              {/* Reset to see all roles */}
+              <button
+                onClick={() => {
+                  resetFilter();
+                  setActiveCategory(null);
+                  setKeyword('');
+                  doSearch(true, null, null, typeFilter, '');
+                }}
+                className={`ml-auto px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  !activeRole
+                    ? 'bg-white/10 border-white/30 text-white'
+                    : 'bg-transparent border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
+                }`}
+              >
+                🌐 View All Jobs
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Category Chips ──────────────────────────────────────────────── */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
           {/* All Roles chip */}

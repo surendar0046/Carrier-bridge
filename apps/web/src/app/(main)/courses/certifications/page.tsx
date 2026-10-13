@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useStudentCareerMatch, getKeywordsForRole } from '@/hooks/useStudentCareerMatch';
 
 // ── Free Certification Courses Dataset ────────────────────────────────────────
 // Sources: GUVI, W3Schools, HCL TechBee, Google, Microsoft, AWS, Meta, Cisco,
@@ -668,6 +669,16 @@ const LEVELS = ['All Levels', 'Beginner', 'Intermediate', 'Advanced'];
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function FreeCertificationsPage() {
+  const {
+    hasCompletedQuiz,
+    primaryRole,
+    primaryConfidence,
+    closeRoles,
+    activeRole,
+    setActiveRole,
+    resetFilter,
+  } = useStudentCareerMatch();
+
   const [search,       setSearch]       = useState('');
   const [category,     setCategory]     = useState('All');
   const [platform,     setPlatform]     = useState('All Platforms');
@@ -675,17 +686,29 @@ export default function FreeCertificationsPage() {
   const [showNew,      setShowNew]      = useState(false);
   const [showPopular,  setShowPopular]  = useState(false);
 
+  const activeRoleKeywords = useMemo(() => {
+    if (!hasCompletedQuiz || !activeRole || search.trim()) return [];
+    return getKeywordsForRole(activeRole).map(k => k.toLowerCase());
+  }, [hasCompletedQuiz, activeRole, search]);
+
   const filtered = useMemo(() => {
     return COURSES.filter(c => {
-      const matchSearch   = !search || [c.title, c.provider, ...c.skills, ...c.roleTag].join(' ').toLowerCase().includes(search.toLowerCase());
+      const matchSearch = !search || [c.title, c.provider, ...c.skills, ...c.roleTag, c.category].join(' ').toLowerCase().includes(search.toLowerCase());
+      
+      let matchActiveRole = true;
+      if (activeRoleKeywords.length > 0) {
+        const hay = [c.title, c.category, ...c.skills, ...c.roleTag].join(' ').toLowerCase();
+        matchActiveRole = activeRoleKeywords.some(kw => hay.includes(kw));
+      }
+
       const matchCategory = category === 'All' || c.category === category;
       const matchPlatform = platform === 'All Platforms' || c.platform === platform;
       const matchLevel    = level === 'All Levels' || c.level === level;
       const matchNew      = !showNew || c.isNew;
       const matchPopular  = !showPopular || c.isPopular;
-      return matchSearch && matchCategory && matchPlatform && matchLevel && matchNew && matchPopular;
+      return matchSearch && matchActiveRole && matchCategory && matchPlatform && matchLevel && matchNew && matchPopular;
     });
-  }, [search, category, platform, level, showNew, showPopular]);
+  }, [search, activeRoleKeywords, category, platform, level, showNew, showPopular]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -747,6 +770,109 @@ export default function FreeCertificationsPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* ── AI Tailored Certifications Banner (Quiz Matched) ──────────── */}
+        {hasCompletedQuiz && (primaryRole || activeRole) && (
+          <div className="mb-8 p-5 md:p-6 rounded-3xl bg-gradient-to-r from-violet-900/30 via-indigo-900/20 to-blue-900/30 border border-violet-500/30 shadow-2xl shadow-violet-950/50 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-violet-500/20 border border-violet-400/40 text-violet-300 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-violet-400 animate-ping" />
+                    AI Certification Track
+                  </span>
+                  <span className="text-xs text-slate-400 font-semibold">
+                    Free Certifications Recommended for Your Quiz Profile
+                  </span>
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 flex-wrap">
+                  <span>Free Certifications for</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-blue-400 font-extrabold underline decoration-violet-500/40 underline-offset-4">
+                    {activeRole || primaryRole}
+                  </span>
+                  {activeRole === primaryRole && primaryConfidence ? (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold">
+                      {primaryConfidence}% Match
+                    </span>
+                  ) : null}
+                </h2>
+                <p className="text-xs text-slate-300">
+                  Showing recognized certifications to build job-ready credentials. Switch tracks or type in search to view all.
+                </p>
+              </div>
+
+              <div className="text-right self-start md:self-auto">
+                <span className="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-bold text-slate-300">
+                  {filtered.length} Recommended Courses
+                </span>
+              </div>
+            </div>
+
+            {/* Role switchers pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
+              <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mr-1">
+                Your Matches:
+              </span>
+
+              {/* Top 1 Fit Role */}
+              {primaryRole && (
+                <button
+                  onClick={() => {
+                    setCategory('All');
+                    setSearch('');
+                    setActiveRole(primaryRole);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    activeRole === primaryRole
+                      ? 'bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/30'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white'
+                  }`}
+                >
+                  <span>🌟 {primaryRole}</span>
+                  <span className="text-[10px] opacity-80">({primaryConfidence}%)</span>
+                </button>
+              )}
+
+              {/* Top 2 Close Matches */}
+              {closeRoles.map((cr, idx) => (
+                <button
+                  key={cr.role}
+                  onClick={() => {
+                    setCategory('All');
+                    setSearch('');
+                    setActiveRole(cr.role);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    activeRole === cr.role
+                      ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-blue-500/50 hover:text-blue-200'
+                  }`}
+                >
+                  <span>⇄ #{idx + 2} {cr.role}</span>
+                  <span className="text-[10px] opacity-80">({cr.confidence}%)</span>
+                </button>
+              ))}
+
+              {/* Reset to see all certifications */}
+              <button
+                onClick={() => {
+                  resetFilter();
+                  setCategory('All');
+                  setSearch('');
+                }}
+                className={`ml-auto px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  !activeRole
+                    ? 'bg-white/10 border-white/30 text-white'
+                    : 'bg-transparent border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
+                }`}
+              >
+                🌐 View All Certifications
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Platform Pills ─────────────────────────────────────────────── */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">

@@ -40,9 +40,9 @@ export async function verifyAssessmentSystem(): Promise<VerifyResult> {
   try {
     // Check 1: Active question count matches file
     const qCountRes = await client.query(
-      'SELECT COUNT(*)::int as count FROM assessment_questions WHERE is_active = true'
+      'SELECT COUNT(*) as count FROM assessment_questions WHERE is_active = true'
     );
-    const dbActiveCount = qCountRes.rows[0]?.count || 0;
+    const dbActiveCount = Number(qCountRes.rows[0]?.count || 0);
     const countMatches = dbActiveCount === expectedCount;
 
     checks.push({
@@ -53,12 +53,12 @@ export async function verifyAssessmentSystem(): Promise<VerifyResult> {
 
     // Check 2: No orphan foreign keys in question_domain_weights
     const orphanWeightsRes = await client.query(
-      `SELECT COUNT(*)::int as count
+      `SELECT COUNT(*) as count
        FROM question_domain_weights w
        LEFT JOIN assessment_questions q ON w.question_id = q.id
        WHERE q.id IS NULL`
     );
-    const orphanWeights = orphanWeightsRes.rows[0]?.count || 0;
+    const orphanWeights = Number(orphanWeightsRes.rows[0]?.count || 0);
     checks.push({
       name: 'No Orphan Foreign Keys in Domain Weights',
       passed: orphanWeights === 0,
@@ -85,12 +85,12 @@ export async function verifyAssessmentSystem(): Promise<VerifyResult> {
 
     // Check 4: No orphan foreign keys in responses or results
     const orphanRespRes = await client.query(
-      `SELECT COUNT(*)::int as count
+      `SELECT COUNT(*) as count
        FROM assessment_responses r
        LEFT JOIN assessment_attempts a ON r.attempt_id = a.id
        WHERE a.id IS NULL`
     );
-    const orphanResponses = orphanRespRes.rows[0]?.count || 0;
+    const orphanResponses = Number(orphanRespRes.rows[0]?.count || 0);
     checks.push({
       name: 'No Orphan Responses',
       passed: orphanResponses === 0,

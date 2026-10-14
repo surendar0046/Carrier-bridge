@@ -203,11 +203,11 @@ assessmentRouter.post('/attempts/:id/responses', async (req: Request, res: Respo
         await client.query(
           `INSERT INTO assessment_responses (
             attempt_id, question_id, selected_option, is_correct, time_spent_seconds, created_at
-          ) VALUES ($1, $2, $3, $4, $5, NOW())
-          ON CONFLICT (attempt_id, question_id) DO UPDATE SET
-            selected_option = EXCLUDED.selected_option,
-            is_correct = EXCLUDED.is_correct,
-            time_spent_seconds = EXCLUDED.time_spent_seconds`,
+          ) VALUES (?, ?, ?, ?, ?, NOW())
+          ON DUPLICATE KEY UPDATE
+            selected_option = VALUES(selected_option),
+            is_correct = VALUES(is_correct),
+            time_spent_seconds = VALUES(time_spent_seconds)`,
           [attemptId, item.question_id, item.selected_option, isCorrect, item.time_spent_seconds]
         );
       }
@@ -245,7 +245,7 @@ assessmentRouter.post('/attempts/:id/complete', async (req: Request, res: Respon
   try {
     // 1. Verify attempt ownership
     const attemptRes = await query(
-      'SELECT id, user_id, audience, completed_at FROM assessment_attempts WHERE id = $1',
+      'SELECT id, user_id, audience, completed_at FROM assessment_attempts WHERE id = ?',
       [attemptId]
     );
 
@@ -268,7 +268,7 @@ assessmentRouter.post('/attempts/:id/complete', async (req: Request, res: Respon
 
     // 2. Fetch responses for this attempt
     const responsesRes = await query(
-      'SELECT question_id, selected_option, time_spent_seconds FROM assessment_responses WHERE attempt_id = $1',
+      'SELECT question_id, selected_option, time_spent_seconds FROM assessment_responses WHERE attempt_id = ?',
       [attemptId]
     );
 
@@ -282,30 +282,26 @@ assessmentRouter.post('/attempts/:id/complete', async (req: Request, res: Respon
 
     // 3. Fetch questions and their domain weights
     const questionsRes = await query(
-      `SELECT q.id, q.section, q.correct_answer,
-              COALESCE(
-                jsonb_object_agg(
-                  w.option_key,
-                  (
-                    SELECT jsonb_object_agg(d2.slug, w2.weight)
-                    FROM question_domain_weights w2
-                    JOIN domains d2 ON w2.domain_id = d2.id
-                    WHERE w2.question_id = q.id AND w2.option_key = w.option_key
-                  )
-                ) FILTER (WHERE w.option_key IS NOT NULL),
-                '{}'::jsonb
-              ) as domain_weights
-       FROM assessment_questions q
-       LEFT JOIN question_domain_weights w ON q.id = w.question_id
-       WHERE q.is_active = true
-       GROUP BY q.id, q.section, q.correct_answer`
+      'SELECT id, section, correct_answer FROM assessment_questions WHERE is_active = true'
     );
+    const weightsRes = await query(
+      `SELECT w.question_id, w.option_key, w.weight, d.slug as domain_slug
+       FROM question_domain_weights w
+       JOIN domains d ON w.domain_id = d.id`
+    );
+
+    const weightsByQuestion: Record<string, Record<string, Record<string, number>>> = {};
+    for (const w of weightsRes.rows) {
+      if (!weightsByQuestion[w.question_id]) weightsByQuestion[w.question_id] = {};
+      if (!weightsByQuestion[w.question_id][w.option_key]) weightsByQuestion[w.question_id][w.option_key] = {};
+      weightsByQuestion[w.question_id][w.option_key][w.domain_slug] = Number(w.weight);
+    }
 
     const questions: QuestionScoringData[] = questionsRes.rows.map((r) => ({
       id: r.id,
       section: r.section,
       correct_answer: r.correct_answer,
-      domain_weights: typeof r.domain_weights === 'string' ? JSON.parse(r.domain_weights) : r.domain_weights,
+      domain_weights: weightsByQuestion[r.id] || {},
     }));
 
     // 4. Fetch all domains
@@ -329,17 +325,17 @@ assessmentRouter.post('/attempts/:id/complete', async (req: Request, res: Respon
       await client.query('BEGIN');
 
       await client.query(
-        'UPDATE assessment_attempts SET completed_at = NOW() WHERE id = $1',
+        'UPDATE assessment_attempts SET completed_at = NOW() WHERE id = ?',
         [attemptId]
       );
 
       await client.query(
         `INSERT INTO assessment_results (attempt_id, section_scores, top_domains, skill_gaps, created_at)
-         VALUES ($1, $2, $3, $4, NOW())
-         ON CONFLICT (attempt_id) DO UPDATE SET
-           section_scores = EXCLUDED.section_scores,
-           top_domains = EXCLUDED.top_domains,
-           skill_gaps = EXCLUDED.skill_gaps`,
+         VALUES (?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE
+           section_scores = VALUES(section_scores),
+           top_domains = VALUES(top_domains),
+           skill_gaps = VALUES(skill_gaps)`,
         [
           attemptId,
           JSON.stringify(scoringResult.section_scores),

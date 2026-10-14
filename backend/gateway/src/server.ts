@@ -404,24 +404,25 @@ async function initializeAssessmentSystem() {
   try {
     const isDbAlive = await testDbConnection();
     if (!isDbAlive) {
-      console.log('[Assessment System] PostgreSQL not yet reachable at startup; auto-import will run when database connection is established.');
+      console.log('[Assessment System] MySQL not yet reachable at startup; auto-import will run when database connection is established.');
       return;
     }
     const tableCheck = await pool.query(
-      "SELECT to_regclass('public.assessment_questions') as exists"
+      "SHOW TABLES LIKE 'assessment_questions'"
     );
-    if (!tableCheck.rows[0]?.exists) {
+    if (tableCheck.rows.length === 0) {
       console.log('[Assessment System] Assessment tables not detected. Running migrations...');
       await runAssessmentMigrations('up');
     }
     const countRes = await pool.query(
-      'SELECT COUNT(*)::int as count FROM assessment_questions WHERE is_active = true'
+      'SELECT COUNT(*) as count FROM assessment_questions WHERE is_active = true'
     );
-    if ((countRes.rows[0]?.count || 0) === 0) {
+    const activeCount = Number(countRes.rows[0]?.count || 0);
+    if (activeCount === 0) {
       console.log('[Assessment System] Assessment questions table is empty. Triggering automatic initial import...');
       await importAssessmentQuestions();
     } else {
-      console.log(`[Assessment System] Active questions in PostgreSQL: ${countRes.rows[0].count}`);
+      console.log(`[Assessment System] Active questions in MySQL: ${activeCount}`);
     }
   } catch (err: any) {
     console.warn('[Assessment System] Startup initialization note:', err.message);

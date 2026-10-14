@@ -137,7 +137,7 @@ export async function importAssessmentQuestions(options: ImportOptions = {}): Pr
           .join(' ');
         const id = `dom_${slug}`;
         await client.query(
-          'INSERT INTO domains (id, name, slug, description) VALUES ($1, $2, $3, $4) ON CONFLICT (slug) DO NOTHING',
+          'INSERT IGNORE INTO domains (id, name, slug, description) VALUES (?, ?, ?, ?)',
           [id, name, slug, `Domain track for ${name}`]
         );
         domainMap.set(slug, id);
@@ -159,17 +159,17 @@ export async function importAssessmentQuestions(options: ImportOptions = {}): Pr
       await client.query(
         `INSERT INTO assessment_questions (
           id, audience, section, question, options, correct_answer, difficulty, explanation, is_active, dataset_version, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, NOW())
-        ON CONFLICT (id) DO UPDATE SET
-          audience = EXCLUDED.audience,
-          section = EXCLUDED.section,
-          question = EXCLUDED.question,
-          options = EXCLUDED.options,
-          correct_answer = EXCLUDED.correct_answer,
-          difficulty = EXCLUDED.difficulty,
-          explanation = EXCLUDED.explanation,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, true, ?, NOW())
+        ON DUPLICATE KEY UPDATE
+          audience = VALUES(audience),
+          section = VALUES(section),
+          question = VALUES(question),
+          options = VALUES(options),
+          correct_answer = VALUES(correct_answer),
+          difficulty = VALUES(difficulty),
+          explanation = VALUES(explanation),
           is_active = true,
-          dataset_version = EXCLUDED.dataset_version,
+          dataset_version = VALUES(dataset_version),
           updated_at = NOW()`,
         [
           q.id,
@@ -191,7 +191,7 @@ export async function importAssessmentQuestions(options: ImportOptions = {}): Pr
       }
 
       // Re-seed weights for this question
-      await client.query('DELETE FROM question_domain_weights WHERE question_id = $1', [q.id]);
+      await client.query('DELETE FROM question_domain_weights WHERE question_id = ?', [q.id]);
 
       const optKeys: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
       for (const optKey of optKeys) {
@@ -201,8 +201,8 @@ export async function importAssessmentQuestions(options: ImportOptions = {}): Pr
           if (domainId && typeof weight === 'number' && weight >= 0 && weight <= 3) {
             await client.query(
               `INSERT INTO question_domain_weights (question_id, option_key, domain_id, weight)
-               VALUES ($1, $2, $3, $4)
-               ON CONFLICT (question_id, option_key, domain_id) DO UPDATE SET weight = EXCLUDED.weight`,
+               VALUES (?, ?, ?, ?)
+               ON DUPLICATE KEY UPDATE weight = VALUES(weight)`,
               [q.id, optKey, domainId, weight]
             );
           }
@@ -213,20 +213,20 @@ export async function importAssessmentQuestions(options: ImportOptions = {}): Pr
     // 4. Soft-deactivate questions that were removed from file (Never delete!)
     let deactivatedCount = 0;
     if (currentValidIds.length > 0) {
+      const placeholders = currentValidIds.map(() => '?').join(',');
       const deactRes = await client.query(
         `UPDATE assessment_questions
          SET is_active = false, updated_at = NOW()
-         WHERE is_active = true AND NOT (id = ANY($1::text[]))`,
-        [currentValidIds]
+         WHERE is_active = true AND id NOT IN (${placeholders})`,
+        currentValidIds
       );
       deactivatedCount = deactRes.rowCount || 0;
     }
 
     // 5. Record dataset version
     await client.query(
-      `INSERT INTO dataset_versions (version, sha256, filename, row_count)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (sha256) DO NOTHING`,
+      `INSERT IGNORE INTO dataset_versions (version, sha256, filename, row_count)
+       VALUES (?, ?, ?, ?)`,
       [
         hash.substring(0, 12),
         hash,

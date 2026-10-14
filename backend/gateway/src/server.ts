@@ -429,7 +429,7 @@ async function initializeAssessmentSystem() {
 }
 
 // ── Start ───────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.X_ZOHO_CATALYST_LISTEN_PORT || process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
   console.log(`\n🚀 Career Bridge Gateway running at http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);

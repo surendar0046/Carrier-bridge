@@ -1,0 +1,9 @@
+{
+  "command": "node dist/server.js",
+  "buildPath": "dist",
+  "stack": "node22",
+  "memory": 512,
+  "env_variables": {
+    "NODE_ENV": "production"
+  }
+}

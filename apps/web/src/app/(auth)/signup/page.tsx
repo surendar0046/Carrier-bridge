@@ -7,7 +7,6 @@ import Link from 'next/link';
 type UserRole = 'student' | 'professional';
 
 export default function SignupPage() {
-  const [mounted, setMounted] = React.useState(false);
   const [role, setRole] = useState<UserRole>('student');
   const [studentTrack, setStudentTrack] = useState<'first_year' | 'fresher'>('first_year');
   const [name, setName] = useState('');
@@ -18,12 +17,8 @@ export default function SignupPage() {
   const router = useRouter();
 
   React.useEffect(() => {
-    setMounted(true);
     clearError();
-    try {
-      router.prefetch('/quiz');
-    } catch {}
-  }, [clearError, router]);
+  }, [clearError]);
 
   // Immediate redirect as soon as user is authenticated
   React.useEffect(() => {
@@ -60,8 +55,6 @@ export default function SignupPage() {
       router.replace(role === 'professional' ? '/professional' : '/quiz');
     }
   };
-
-  if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans py-8 bg-white">

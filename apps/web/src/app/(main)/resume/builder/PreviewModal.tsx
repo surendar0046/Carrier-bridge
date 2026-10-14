@@ -1,129 +1,177 @@
 'use client';
-import { ResumeFormData } from './useResumeStore';
 
-interface Props { data: ResumeFormData; onClose: () => void }
+import { useState } from 'react';
+import { ResumeFormData, ResumeTemplateId } from './useResumeStore';
+import { TEMPLATES, ResumeTemplateRenderer } from './templates';
 
-export default function PreviewModal({ data, onClose }: Props) {
-  const { personalInfo: p, summary, experience, education, skills, projects, certifications, targetRole } = data;
-  const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
+interface Props {
+  data: ResumeFormData;
+  onClose: () => void;
+  onTemplateChange?: (templateId: ResumeTemplateId) => void;
+}
+
+export default function PreviewModal({ data, onClose, onTemplateChange }: Props) {
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>(
+    data.template || 'canva-minimalist'
+  );
+  const [zoom, setZoom] = useState<number>(100);
+
+  const handleSelectTemplate = (id: ResumeTemplateId) => {
+    setSelectedTemplate(id);
+    if (onTemplateChange) {
+      onTemplateChange(id);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white text-gray-900 w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
-        {/* Toolbar */}
-        <div className="sticky top-0 bg-slate-800 text-white px-6 py-3 flex justify-between items-center rounded-t-2xl">
-          <span className="font-bold text-sm">📄 Resume Preview — {targetRole}</span>
-          <div className="flex gap-3">
-            <button onClick={() => window.print()} className="text-xs bg-blue-600 hover:bg-blue-700 px-4 py-1.5 rounded-lg transition-colors">
-              🖨️ Print / PDF
-            </button>
-            <button onClick={onClose} className="text-xs bg-slate-700 hover:bg-slate-600 px-4 py-1.5 rounded-lg transition-colors">
-              ✕ Close
-            </button>
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-between p-2 md:p-6 overflow-hidden animate-fade-in">
+      <style jsx global>{`
+        @media print {
+          body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          /* Hide all UI except the resume content */
+          body * {
+            visibility: hidden !important;
+          }
+          #resume-print-content,
+          #resume-print-content * {
+            visibility: visible !important;
+          }
+          #resume-print-content {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            background: white !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 12mm;
+          }
+        }
+      `}</style>
+
+      {/* ── Top Floating Toolbar ── */}
+      <div className="w-full max-w-5xl bg-slate-900/95 border border-white/10 text-white px-4 md:px-6 py-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-3 shrink-0 mb-3 z-10">
+        {/* Left: Title & Role */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-sm shadow-md">
+            📄
+          </div>
+          <div>
+            <h3 className="font-bold text-sm text-white flex items-center gap-2">
+              Resume Preview
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/10 text-slate-300 px-2 py-0.5 rounded-full">
+                {data.targetRole || 'Professional'}
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-400">
+              Template: <strong className="text-white">{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</strong>
+            </p>
           </div>
         </div>
 
-        {/* Resume Content */}
-        <div id="resume-print-content" className="p-10 font-serif text-[13px] leading-relaxed print:p-0">
-          {/* Header */}
-          <div className="border-b-2 border-gray-800 pb-4 mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{p.fullName || 'Your Name'}</h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-gray-600 text-xs">
-              {p.email && <span>✉ {p.email}</span>}
-              {p.phone && <span>📱 {p.phone}</span>}
-              {p.location && <span>📍 {p.location}</span>}
-              {p.linkedin && <span>🔗 {p.linkedin}</span>}
-              {p.portfolio && <span>🌐 {p.portfolio}</span>}
-            </div>
+        {/* Center: Template Switcher Pills */}
+        <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-white/5 overflow-x-auto max-w-full">
+          {TEMPLATES.map(t => {
+            const active = selectedTemplate === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => handleSelectTemplate(t.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  active
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+                title={t.description}
+              >
+                <span>{t.icon}</span>
+                <span>{t.name}</span>
+                {t.badge && (
+                  <span
+                    className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full ${
+                      t.id === 'canva-minimalist'
+                        ? 'bg-amber-400 text-slate-950 font-black'
+                        : 'bg-white/20 text-white'
+                    }`}
+                  >
+                    {t.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right: Zoom + Actions */}
+        <div className="flex items-center gap-2">
+          {/* Zoom Controls */}
+          <div className="hidden lg:flex items-center gap-1 bg-slate-800 px-2 py-1 rounded-xl text-xs text-slate-300">
+            <button
+              onClick={() => setZoom(z => Math.max(70, z - 10))}
+              className="p-1 hover:text-white hover:bg-white/5 rounded"
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <span className="w-10 text-center font-mono text-[11px]">{zoom}%</span>
+            <button
+              onClick={() => setZoom(z => Math.min(130, z + 10))}
+              className="p-1 hover:text-white hover:bg-white/5 rounded"
+              title="Zoom In"
+            >
+              +
+            </button>
+            {zoom !== 100 && (
+              <button
+                onClick={() => setZoom(100)}
+                className="text-[10px] text-blue-400 hover:text-blue-300 ml-1 underline"
+              >
+                reset
+              </button>
+            )}
           </div>
 
-          {/* Summary */}
-          {summary && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Professional Summary</h2>
-              <p className="text-gray-700">{summary}</p>
-            </section>
-          )}
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-1.5 transition-all active:scale-95"
+          >
+            🖨️ Print / Save PDF
+          </button>
 
-          {/* Experience */}
-          {experience.filter(e => e.company || e.role).length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Experience</h2>
-              {experience.filter(e => e.company || e.role).map(exp => (
-                <div key={exp.id} className="mb-3">
-                  <div className="flex justify-between items-baseline">
-                    <span className="font-bold text-gray-900">{exp.role}</span>
-                    <span className="text-gray-500 text-xs">{exp.startDate}{exp.startDate && ' – '}{exp.endDate || (exp.startDate ? 'Present' : '')}</span>
-                  </div>
-                  <div className="text-gray-600 italic">{exp.company}</div>
-                  <ul className="mt-1 space-y-0.5">
-                    {exp.achievements.filter(a => a).map((a, i) => (
-                      <li key={i} className="flex gap-2 text-gray-700"><span>•</span>{a}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm transition-colors"
+            title="Close Preview (Esc)"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
 
-          {/* Education */}
-          {education.filter(e => e.institution).length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Education</h2>
-              {education.filter(e => e.institution).map(edu => (
-                <div key={edu.id} className="flex justify-between items-baseline mb-1">
-                  <div>
-                    <span className="font-bold">{edu.degree} {edu.field && `in ${edu.field}`}</span>
-                    <span className="text-gray-600"> — {edu.institution}</span>
-                    {edu.gpa && <span className="text-gray-500 text-xs"> · GPA: {edu.gpa}</span>}
-                  </div>
-                  <span className="text-gray-500 text-xs">{edu.year}</span>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* Skills */}
-          {skillList.length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Skills</h2>
-              <div className="flex flex-wrap gap-2">
-                {skillList.map(s => (
-                  <span key={s} className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded text-xs border border-gray-200">{s}</span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Projects */}
-          {projects.filter(p => p.name).length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Projects</h2>
-              {projects.filter(p => p.name).map(proj => (
-                <div key={proj.id} className="mb-2">
-                  <div className="flex gap-2 items-baseline">
-                    <span className="font-bold">{proj.name}</span>
-                    {proj.link && <a href={proj.link} className="text-blue-600 text-xs">{proj.link}</a>}
-                  </div>
-                  {proj.description && <p className="text-gray-700">{proj.description}</p>}
-                  {proj.tech && <p className="text-gray-500 text-xs mt-0.5">Tech: {proj.tech}</p>}
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* Certifications */}
-          {certifications.filter(c => c.name).length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Certifications</h2>
-              {certifications.filter(c => c.name).map(cert => (
-                <div key={cert.id} className="flex justify-between">
-                  <span>{cert.name} — <span className="text-gray-600">{cert.issuer}</span></span>
-                  <span className="text-gray-500 text-xs">{cert.year}</span>
-                </div>
-              ))}
-            </section>
-          )}
+      {/* ── Document Viewport ── */}
+      <div className="flex-1 w-full overflow-y-auto flex justify-center items-start p-2 md:p-6 pb-16">
+        <div
+          id="resume-print-content"
+          className="w-full max-w-[800px] shadow-2xl rounded-sm transition-transform duration-200 origin-top bg-white"
+          style={{
+            transform: zoom === 100 ? 'none' : `scale(${zoom / 100})`,
+            transformOrigin: 'top center',
+          }}
+        >
+          <ResumeTemplateRenderer data={data} templateId={selectedTemplate} />
         </div>
       </div>
     </div>

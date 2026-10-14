@@ -6,6 +6,10 @@ import { Server as SocketIOServer } from 'socket.io';
 import Groq from 'groq-sdk';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
+import { assessmentRouter } from './modules/assessment/routes';
+import { testDbConnection, pool } from './config/db';
+import { runAssessmentMigrations } from './modules/assessment/migrator';
+import { importAssessmentQuestions } from './modules/assessment/importer';
 
 dotenv.config();
 
@@ -24,6 +28,9 @@ const io = new SocketIOServer(httpServer, {
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
 app.use(express.json());
+
+// ── Assessment Routes ───────────────────────────────────────────────────────
+app.use('/api/assessment', assessmentRouter);
 
 // ── Health Check ────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -392,10 +399,40 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { console.log(`[WS] Client disconnected: ${socket.id}`); });
 });
 
+// ── Assessment Startup Initialization ──────────────────────────────────────
+async function initializeAssessmentSystem() {
+  try {
+    const isDbAlive = await testDbConnection();
+    if (!isDbAlive) {
+      console.log('[Assessment System] PostgreSQL not yet reachable at startup; auto-import will run when database connection is established.');
+      return;
+    }
+    const tableCheck = await pool.query(
+      "SELECT to_regclass('public.assessment_questions') as exists"
+    );
+    if (!tableCheck.rows[0]?.exists) {
+      console.log('[Assessment System] Assessment tables not detected. Running migrations...');
+      await runAssessmentMigrations('up');
+    }
+    const countRes = await pool.query(
+      'SELECT COUNT(*)::int as count FROM assessment_questions WHERE is_active = true'
+    );
+    if ((countRes.rows[0]?.count || 0) === 0) {
+      console.log('[Assessment System] Assessment questions table is empty. Triggering automatic initial import...');
+      await importAssessmentQuestions();
+    } else {
+      console.log(`[Assessment System] Active questions in PostgreSQL: ${countRes.rows[0].count}`);
+    }
+  } catch (err: any) {
+    console.warn('[Assessment System] Startup initialization note:', err.message);
+  }
+}
+
 // ── Start ───────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
   console.log(`\n🚀 Career Bridge Gateway running at http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   WebSocket: ws://localhost:${PORT}\n`);
+  initializeAssessmentSystem();
 });

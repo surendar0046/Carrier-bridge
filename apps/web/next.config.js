@@ -15,8 +15,18 @@ const nextConfig = {
   compress: true,
   reactStrictMode: false,
   poweredByHeader: false,
-  // Serve static assets with long-lived cache headers
+  // Serve static assets with long-lived cache headers only in production
   async headers() {
+    if (process.env.NODE_ENV !== 'production') {
+      return [
+        {
+          source: '/_next/static/:path*',
+          headers: [
+            { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+          ],
+        },
+      ];
+    }
     return [
       {
         source: '/_next/static/:path*',
@@ -33,6 +43,7 @@ const nextConfig = {
     ];
   },
   experimental: {
+    scrollRestoration: true,
     optimizePackageImports: [
       'lucide-react',
       'framer-motion',

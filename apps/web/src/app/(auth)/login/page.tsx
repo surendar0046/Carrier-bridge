@@ -12,7 +12,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const { login, logout, resetPassword, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuthStore();
   const { profile, fetchProfile, updateProfile } = useUserStore();
   const router = useRouter();
@@ -25,14 +24,7 @@ export default function LoginPage() {
   const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     clearError();
-    // Warm up destination route chunks in background to make transition instant
-    try {
-      router.prefetch('/quiz');
-      router.prefetch('/dashboard');
-      router.prefetch('/professional');
-    } catch {}
     // Ensure any leftover dummy or stale profile is wiped when visiting login unauthenticated
     if (!isAuthenticated) {
       const p = useUserStore.getState().profile;
@@ -40,7 +32,7 @@ export default function LoginPage() {
         useUserStore.getState().clearProfile();
       }
     }
-  }, [clearError, isAuthenticated, router]);
+  }, [clearError, isAuthenticated]);
 
   const hasUserTakenTest = (userProfile: any, userEmail: string): boolean => {
     if (typeof window === 'undefined') return false;
@@ -170,8 +162,6 @@ export default function LoginPage() {
       setResetError(res.error || 'Failed to send password reset email.');
     }
   };
-
-  if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-sans bg-white">

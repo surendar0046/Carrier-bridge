@@ -6,7 +6,11 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:migrate:assessment": "pnpm --filter @career-bridge/gateway db:migrate:assessment",
+    "db:import:assessment": "pnpm --filter @career-bridge/gateway db:import:assessment",
+    "db:verify:assessment": "pnpm --filter @career-bridge/gateway db:verify:assessment",
+    "test:assessment": "pnpm --filter @career-bridge/gateway test"
   },
   "devDependencies": {
     "turbo": "latest",

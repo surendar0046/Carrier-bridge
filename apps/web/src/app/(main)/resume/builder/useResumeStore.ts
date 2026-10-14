@@ -16,6 +16,8 @@ export interface Project {
 export interface Certification {
   id: string; name: string; issuer: string; year: string;
 }
+export type ResumeTemplateId = 'canva-minimalist' | 'modern' | 'classic' | 'compact-ats';
+
 export interface ResumeFormData {
   personalInfo: { fullName: string; email: string; phone: string; location: string; linkedin: string; portfolio: string };
   summary: string;
@@ -25,6 +27,9 @@ export interface ResumeFormData {
   projects: Project[];
   certifications: Certification[];
   targetRole: string;
+  template?: ResumeTemplateId;
+  languages?: string;
+  awards?: string;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -38,6 +43,9 @@ const INITIAL: ResumeFormData = {
   projects: [],
   certifications: [],
   targetRole: 'Software Engineer',
+  template: 'canva-minimalist',
+  languages: '',
+  awards: '',
 };
 
 // ─── All Tech Career Roles ────────────────────────────────────────────────────
@@ -224,9 +232,13 @@ export function useResumeStore() {
   const setCert = (id: string, key: string, val: string) =>
     setForm(f => ({ ...f, certifications: f.certifications.map(c => c.id === id ? { ...c, [key]: val } : c) }));
 
+  const setTemplate = (template: ResumeTemplateId) =>
+    setForm(f => ({ ...f, template }));
+
   return {
     form, setForm,
     setPersonal,
+    setTemplate,
     addExp, removeExp, setExp, setAchievement, addAchievement, removeAchievement,
     addEdu, removeEdu, setEdu,
     addProject, removeProject, setProject,

@@ -1,22 +1,30 @@
 'use client';
 import { useState } from 'react';
-import { useResumeStore, ResumeFormData } from './useResumeStore';
+import { useResumeStore, ResumeFormData, ResumeTemplateId } from './useResumeStore';
 import RoleCombobox from './RoleCombobox';
 import { useUserStore } from '@career-bridge/store';
 import AnalysisPanel, { AnalysisResult } from './AnalysisPanel';
 import PreviewModal from './PreviewModal';
+import { TEMPLATES } from './templates';
 
 const AI_URL = '/api/resume/analyze';
 
 const inp = 'w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all';
 const label = 'block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider';
 
-function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
+function Section({ title, icon, badge, children }: { title: string; icon: string; badge?: string; children: React.ReactNode }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-      <h2 className="text-sm font-black text-slate-900 mb-5 flex items-center gap-2">
-        <span>{icon}</span>{title}
-      </h2>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
+          <span>{icon}</span>{title}
+        </h2>
+        {badge && (
+          <span className="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-0.5 rounded-full">
+            {badge}
+          </span>
+        )}
+      </div>
       {children}
     </div>
   );
@@ -105,10 +113,17 @@ export default function ResumeBuilderPage() {
   };
 
   const { form: f } = r;
+  const currentTemplate = f.template || 'canva-minimalist';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {preview && <PreviewModal data={f} onClose={() => setPreview(false)} />}
+      {preview && (
+        <PreviewModal
+          data={f}
+          onClose={() => setPreview(false)}
+          onTemplateChange={(t) => r.setTemplate(t)}
+        />
+      )}
 
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-6 py-4 flex items-center justify-between">
@@ -127,8 +142,8 @@ export default function ResumeBuilderPage() {
           <button onClick={importFromProfile} className="hidden md:flex px-5 py-2 border border-slate-300 hover:border-blue-500 text-slate-600 hover:text-blue-600 text-sm font-bold rounded-xl transition-colors items-center gap-2">
             📥 Import Profile
           </button>
-          <button onClick={() => setPreview(true)} className="px-5 py-2 border border-slate-300 hover:border-blue-500 text-slate-600 hover:text-blue-600 text-sm font-bold rounded-xl transition-colors">
-            👁 Preview
+          <button onClick={() => setPreview(true)} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition-all shadow-md flex items-center gap-2 active:scale-95">
+            👁 Preview Template ({TEMPLATES.find(t => t.id === currentTemplate)?.name.split(' ')[0]})
           </button>
           <button onClick={analyze} disabled={loading}
             className="px-5 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-50 text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20">
@@ -147,13 +162,78 @@ export default function ResumeBuilderPage() {
         {/* ── LEFT: Builder Form ── */}
         <div className="p-6 space-y-6 overflow-y-auto border-r border-slate-200">
 
+          {/* ── Choose Resume Template Section ── */}
+          <Section title="Resume Template Style" icon="🎨" badge="4 Layouts Available">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {TEMPLATES.map(t => {
+                const isSelected = currentTemplate === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => r.setTemplate(t.id)}
+                    className={`relative p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20 shadow-md'
+                        : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xl">{t.icon}</span>
+                        {t.badge && (
+                          <span
+                            className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                              t.id === 'canva-minimalist'
+                                ? 'bg-black text-white'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {t.badge}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 leading-tight mb-0.5">
+                        {t.name}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 line-clamp-2">
+                        {t.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className={`text-[10px] font-bold ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>
+                        {isSelected ? '✓ Selected' : 'Select'}
+                      </span>
+                      {isSelected && (
+                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span>
+                Active layout: <strong className="text-slate-800">{TEMPLATES.find(t => t.id === currentTemplate)?.name}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreview(true)}
+                className="text-blue-600 hover:underline font-bold text-xs flex items-center gap-1"
+              >
+                👁 Live Preview Template →
+              </button>
+            </div>
+          </Section>
+
           {/* Target Role */}
           <Section title="Target Role" icon="🎯">
             <RoleCombobox
               value={f.targetRole}
               onChange={(role) => r.setForm(prev => ({ ...prev, targetRole: role }))}
               variant="light"
-              placeholder="Search role or type your own (e.g. Cloud Security, SOC Analyst)..."
+              placeholder="Search role or type your own (e.g. UX Designer, Software Engineer)..."
             />
             {f.targetRole && (
               <p className="mt-2 text-xs text-slate-500">
@@ -166,12 +246,12 @@ export default function ResumeBuilderPage() {
           <Section title="Personal Information" icon="👤">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                ['fullName', 'Full Name', 'Jane Smith'],
-                ['email', 'Email', 'jane@example.com'],
-                ['phone', 'Phone', '+1 234 567 8900'],
-                ['location', 'Location', 'San Francisco, CA'],
-                ['linkedin', 'LinkedIn URL', 'linkedin.com/in/jane'],
-                ['portfolio', 'Portfolio / GitHub', 'github.com/jane'],
+                ['fullName', 'Full Name', 'Daniel Gallego'],
+                ['email', 'Email', 'hello@reallygreatsite.com'],
+                ['phone', 'Phone', '+123-456-7890'],
+                ['location', 'Location', '123 Anywhere St., Any City'],
+                ['linkedin', 'LinkedIn URL', 'linkedin.com/in/daniel'],
+                ['portfolio', 'Portfolio / GitHub', 'reallygreatsite.com'],
               ].map(([key, lbl, ph]) => (
                 <div key={key}>
                   <label className={label}>{lbl}</label>
@@ -301,6 +381,33 @@ export default function ResumeBuilderPage() {
               <button onClick={r.addCert} className="w-full py-2.5 border border-dashed border-slate-300 hover:border-blue-500 rounded-xl text-sm text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                 + Add Certification
               </button>
+            </div>
+          </Section>
+
+          {/* Additional Information (Languages & Awards — featured in Canva template) */}
+          <Section title="Additional Information" icon="🌐" badge="Languages & Awards">
+            <div className="space-y-4">
+              <div>
+                <label className={label}>Languages Spoken</label>
+                <input
+                  className={inp}
+                  placeholder="e.g. English, French, Mandarin, Spanish"
+                  value={f.languages || ''}
+                  onChange={e => r.setForm(prev => ({ ...prev, languages: e.target.value }))}
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Comma-separated languages for global roles.</p>
+              </div>
+
+              <div>
+                <label className={label}>Awards, Honors & Leadership Activities</label>
+                <textarea
+                  rows={2}
+                  className={inp + ' resize-none'}
+                  placeholder="e.g. Most Innovative Project 2024, Smart India Hackathon Finalist, Dean's List (2022-2023)"
+                  value={f.awards || ''}
+                  onChange={e => r.setForm(prev => ({ ...prev, awards: e.target.value }))}
+                />
+              </div>
             </div>
           </Section>
         </div>

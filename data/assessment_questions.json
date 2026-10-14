@@ -1,0 +1,317 @@
+[
+  {
+    "id": "q_12th_int_001",
+    "audience": "12th",
+    "section": "interest",
+    "question": "When you open an app like Instagram or Swiggy, what is the first thing that catches your curiosity?",
+    "options": [
+      { "key": "A", "text": "The visual design, colors, smooth animations, and button layouts" },
+      { "key": "B", "text": "How fast the feed loads and how recommendations instantly show up" },
+      { "key": "C", "text": "Wondering where user passwords and banking data are kept safe" },
+      { "key": "D", "text": "How the business model connects millions of users and vendors" }
+    ],
+    "correct_answer": null,
+    "difficulty": "easy",
+    "explanation": "Evaluates foundational tech interest inclination.",
+    "domain_weights": {
+      "A": { "ui_ux_design": 3, "software_development": 1 },
+      "B": { "software_development": 3, "data_science": 2 },
+      "C": { "cybersecurity": 3 },
+      "D": { "product_management": 3 }
+    }
+  },
+  {
+    "id": "q_12th_int_002",
+    "audience": "12th",
+    "section": "interest",
+    "question": "If you had a completely free weekend to create a digital project from scratch, which would you choose?",
+    "options": [
+      { "key": "A", "text": "Building a mobile game or 3D interactive virtual world" },
+      { "key": "B", "text": "Creating an AI tool that summarizes books or writes poems" },
+      { "key": "C", "text": "Designing a clean personal portfolio website or creative brand aesthetic" },
+      { "key": "D", "text": "Programming a smart home sensor or automation bot that manages devices" }
+    ],
+    "correct_answer": null,
+    "difficulty": "easy",
+    "explanation": "Assesses project preference and creative motivation.",
+    "domain_weights": {
+      "A": { "software_development": 3, "ui_ux_design": 1 },
+      "B": { "data_science": 3, "software_development": 1 },
+      "C": { "ui_ux_design": 3 },
+      "D": { "software_development": 2, "cybersecurity": 1 }
+    }
+  },
+  {
+    "id": "q_12th_apt_001",
+    "audience": "12th",
+    "section": "aptitude",
+    "question": "A train running at 54 km/h takes 20 seconds to pass a standing pole. What is the length of the train?",
+    "options": [
+      { "key": "A", "text": "250 meters" },
+      { "key": "B", "text": "300 meters" },
+      { "key": "C", "text": "350 meters" },
+      { "key": "D", "text": "270 meters" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "medium",
+    "explanation": "Speed = 54 * (5/18) = 15 m/s. Distance = Speed * Time = 15 * 20 = 300 meters.",
+    "domain_weights": {
+      "A": {},
+      "B": { "software_development": 2, "data_science": 3 },
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_12th_apt_002",
+    "audience": "12th",
+    "section": "aptitude",
+    "question": "Find the next number in the series: 3, 7, 15, 31, 63, ?",
+    "options": [
+      { "key": "A", "text": "127" },
+      { "key": "B", "text": "125" },
+      { "key": "C", "text": "126" },
+      { "key": "D", "text": "128" }
+    ],
+    "correct_answer": "A",
+    "difficulty": "easy",
+    "explanation": "Each term is (previous * 2) + 1. 63 * 2 + 1 = 127.",
+    "domain_weights": {
+      "A": { "software_development": 2, "data_science": 3, "cybersecurity": 2 },
+      "B": {},
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_12th_scen_001",
+    "audience": "12th",
+    "section": "scenario",
+    "question": "You notice that whenever it rains heavily, ride-booking fares triple. What is your primary curiosity?",
+    "options": [
+      { "key": "A", "text": "I want to examine the supply vs demand data chart to calculate the surge formula" },
+      { "key": "B", "text": "I think about how the app server handles thousands of simultaneous booking spikes" },
+      { "key": "C", "text": "I think about how to redesign the surge alert screen so riders don't feel frustrated" },
+      { "key": "D", "text": "I think about the strategic business logic and fair compensation for drivers" }
+    ],
+    "correct_answer": null,
+    "difficulty": "medium",
+    "explanation": "Assesses analytical vs technical vs product reasoning in dynamic situations.",
+    "domain_weights": {
+      "A": { "data_science": 3 },
+      "B": { "software_development": 3, "cybersecurity": 1 },
+      "C": { "ui_ux_design": 3 },
+      "D": { "product_management": 3 }
+    }
+  },
+  {
+    "id": "q_eng_tech_001",
+    "audience": "engineering",
+    "section": "technical",
+    "question": "What is the average time complexity of searching an element in a balanced Binary Search Tree (AVL / Red-Black Tree)?",
+    "options": [
+      { "key": "A", "text": "O(1)" },
+      { "key": "B", "text": "O(log n)" },
+      { "key": "C", "text": "O(n)" },
+      { "key": "D", "text": "O(n log n)" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "medium",
+    "explanation": "A balanced BST maintains height h = O(log n), making search, insertion, and deletion O(log n).",
+    "domain_weights": {
+      "A": {},
+      "B": { "software_development": 3, "data_science": 2 },
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_tech_002",
+    "audience": "engineering",
+    "section": "technical",
+    "question": "In JavaScript, what will `console.log(typeof NaN)` output, and why is `NaN === NaN` false?",
+    "options": [
+      { "key": "A", "text": "'undefined', because it is not a valid number" },
+      { "key": "B", "text": "'number', because IEEE 754 specifies NaN is of numeric type but not equal to any value including itself" },
+      { "key": "C", "text": "'object', because NaN is a singleton wrapper object" },
+      { "key": "D", "text": "'boolean', because it indicates an invalid comparison" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "medium",
+    "explanation": "Under IEEE 754 float standards, NaN is of type number and is unequal to all values, even itself.",
+    "domain_weights": {
+      "A": {},
+      "B": { "software_development": 3 },
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_tech_003",
+    "audience": "engineering",
+    "section": "technical",
+    "question": "Which HTTP status code should a RESTful API return when a client request lacks valid authentication credentials?",
+    "options": [
+      { "key": "A", "text": "400 Bad Request" },
+      { "key": "B", "text": "401 Unauthorized" },
+      { "key": "C", "text": "403 Forbidden" },
+      { "key": "D", "text": "404 Not Found" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "easy",
+    "explanation": "401 Unauthorized indicates that the request requires user authentication credentials.",
+    "domain_weights": {
+      "A": {},
+      "B": { "software_development": 3, "cybersecurity": 2 },
+      "C": { "cybersecurity": 1 },
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_tech_004",
+    "audience": "engineering",
+    "section": "technical",
+    "question": "Which machine learning algorithm operates by finding the hyperplane that maximizes the margin between classes?",
+    "options": [
+      { "key": "A", "text": "K-Means Clustering" },
+      { "key": "B", "text": "Support Vector Machine (SVM)" },
+      { "key": "C", "text": "Linear Regression" },
+      { "key": "D", "text": "Random Forest" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "medium",
+    "explanation": "SVM finds the optimal separating hyperplane that maximizes the margin between different classes.",
+    "domain_weights": {
+      "A": {},
+      "B": { "data_science": 3 },
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_tech_005",
+    "audience": "engineering",
+    "section": "technical",
+    "question": "In SQL, what is the key difference between `WHERE` and `HAVING` clauses?",
+    "options": [
+      { "key": "A", "text": "WHERE filters rows before grouping; HAVING filters groups after aggregation" },
+      { "key": "B", "text": "WHERE works only on numeric columns; HAVING works on text" },
+      { "key": "C", "text": "HAVING cannot be used without JOINs" },
+      { "key": "D", "text": "There is no difference; they are aliases" }
+    ],
+    "correct_answer": "A",
+    "difficulty": "medium",
+    "explanation": "WHERE filters individual table rows prior to aggregation; HAVING applies condition filters to grouped aggregates.",
+    "domain_weights": {
+      "A": { "software_development": 2, "data_science": 3 },
+      "B": {},
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_scen_001",
+    "audience": "engineering",
+    "section": "scenario",
+    "question": "Your production API response time degrades from 80ms to 2500ms after a database migration. How do you triage this?",
+    "options": [
+      { "key": "A", "text": "Inspect DB query execution plans (EXPLAIN ANALYZE) to check for missing indexes and table scans" },
+      { "key": "B", "text": "Immediately double the CPU/RAM of the database instance without investigation" },
+      { "key": "C", "text": "Disable authentication to reduce middleware overhead" },
+      { "key": "D", "text": "Restart the web servers in a loop hoping memory clears" }
+    ],
+    "correct_answer": null,
+    "difficulty": "hard",
+    "explanation": "Real world scenario testing database performance troubleshooting skills.",
+    "domain_weights": {
+      "A": { "software_development": 3, "cybersecurity": 2 },
+      "B": { "product_management": 1 },
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_scen_002",
+    "audience": "engineering",
+    "section": "scenario",
+    "question": "A critical zero-day vulnerability is announced in an open-source library used across your microservices. What is your protocol?",
+    "options": [
+      { "key": "A", "text": "Audit dependencies across all repositories, isolate exposed endpoints, and deploy patched builds via CI/CD" },
+      { "key": "B", "text": "Wait for other companies to report breaches before changing anything" },
+      { "key": "C", "text": "Silence vulnerability alerts in the security scanner to avoid deployment blockage" },
+      { "key": "D", "text": "Shut down the entire platform for a week without customer notification" }
+    ],
+    "correct_answer": null,
+    "difficulty": "hard",
+    "explanation": "Scenario testing cybersecurity incident response and DevSecOps maturity.",
+    "domain_weights": {
+      "A": { "cybersecurity": 3, "software_development": 2 },
+      "B": {},
+      "C": {},
+      "D": {}
+    }
+  },
+  {
+    "id": "q_eng_skill_001",
+    "audience": "engineering",
+    "section": "skill",
+    "question": "How comfortable are you designing and implementing relational database schemas (foreign keys, indexing, normalization)?",
+    "options": [
+      { "key": "A", "text": "Advanced: I design normalized schemas, write complex joins, and optimize with compound indexes" },
+      { "key": "B", "text": "Proficient: I can create tables, write standard SELECT/INSERT/UPDATE queries and basic joins" },
+      { "key": "C", "text": "Beginner: I understand tables and primary keys but rely on ORM documentation for queries" },
+      { "key": "D", "text": "Novice: I prefer NoSQL or have not worked directly with relational databases" }
+    ],
+    "correct_answer": null,
+    "difficulty": "medium",
+    "explanation": "Self-assesses relational database engineering proficiency.",
+    "domain_weights": {
+      "A": { "software_development": 3, "data_science": 3 },
+      "B": { "software_development": 2, "data_science": 2 },
+      "C": { "software_development": 1 },
+      "D": { "ui_ux_design": 1 }
+    }
+  },
+  {
+    "id": "q_eng_skill_002",
+    "audience": "engineering",
+    "section": "skill",
+    "question": "When building user interfaces, what is your approach to accessibility (WCAG) and responsive design?",
+    "options": [
+      { "key": "A", "text": "I build responsive mobile-first layouts, test screen readers, and maintain high contrast ratios" },
+      { "key": "B", "text": "I focus primarily on desktop layout and fix mobile views if broken" },
+      { "key": "C", "text": "I use pre-built UI component libraries (Chakra/MUI/Tailwind) without custom accessibility adjustments" },
+      { "key": "D", "text": "I specialize strictly in backend services and do not build user interfaces" }
+    ],
+    "correct_answer": null,
+    "difficulty": "medium",
+    "explanation": "Evaluates front-end UI/UX craft and accessibility standards.",
+    "domain_weights": {
+      "A": { "ui_ux_design": 3, "software_development": 2 },
+      "B": { "ui_ux_design": 1 },
+      "C": { "software_development": 1 },
+      "D": { "cybersecurity": 1, "data_science": 1 }
+    }
+  },
+  {
+    "id": "q_eng_apt_001",
+    "audience": "engineering",
+    "section": "aptitude",
+    "question": "If 6 workers can complete a software module in 12 days, how many days will 9 workers of equal efficiency take?",
+    "options": [
+      { "key": "A", "text": "6 days" },
+      { "key": "B", "text": "8 days" },
+      { "key": "C", "text": "9 days" },
+      { "key": "D", "text": "10 days" }
+    ],
+    "correct_answer": "B",
+    "difficulty": "easy",
+    "explanation": "Total worker-days = 6 * 12 = 72. For 9 workers: 72 / 9 = 8 days.",
+    "domain_weights": {
+      "A": {},
+      "B": { "product_management": 3, "software_development": 2 },
+      "C": {},
+      "D": {}
+    }
+  }
+]

@@ -633,3 +633,19 @@ div[class*="bg-rose-500\/10"] {
   box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.08) !important;
   border-color: rgba(59, 130, 246, 0.2) !important;
 }
+
+/* ── Global Fast Layout & UI Utility Keyframes ────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in { animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

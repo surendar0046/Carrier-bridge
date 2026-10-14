@@ -42,6 +42,7 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedOptionTemp, setSelectedOptionTemp] = useState<string | null>(null);
   const [direction, setDirection] = useState(1);
 
   const { isAuthenticated, isInitialized } = useAuthStore();
@@ -101,16 +102,21 @@ export default function QuizPage() {
   };
 
   const handleAnswer = (option: string) => {
+    setSelectedOptionTemp(option);
     const newAnswers = { ...answers, [questions[step].id]: option };
     setAnswers(newAnswers);
     setDirection(1);
     
-    if (step < questions.length - 1) {
-      setStep(step + 1);
-    } else {
-      setStep(questions.length);
-      generateRecommendation(newAnswers);
-    }
+    // Instant 40ms micro-flash for tactile response then immediately next question
+    setTimeout(() => {
+      setSelectedOptionTemp(null);
+      if (step < questions.length - 1) {
+        setStep(step + 1);
+      } else {
+        setStep(questions.length);
+        generateRecommendation(newAnswers);
+      }
+    }, 40);
   };
 
   const handleSelectRole = (roleName: string) => {
@@ -158,7 +164,7 @@ export default function QuizPage() {
         localStorage.setItem('cb_recommendation', JSON.stringify(rec));
         window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: rec.role }));
       }
-    }, 2800);
+    }, 300);
   };
 
   const handleBack = () => {

@@ -13,6 +13,11 @@ services:
       - NODE_ENV=development
       - PORT=4000
       - FRONTEND_URL=http://localhost:3000
+      - DATABASE_URL=postgresql://career_bridge:career_bridge_secret@postgres:5432/career_bridge
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
     networks:
       - career-bridge-net
     restart: unless-stopped
@@ -47,6 +52,7 @@ services:
       POSTGRES_PASSWORD: career_bridge_secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/gateway/src/modules/assessment/migrations/001_assessment_tables.up.sql:/docker-entrypoint-initdb.d/01-assessment-tables.sql:ro
     networks:
       - career-bridge-net
     restart: unless-stopped

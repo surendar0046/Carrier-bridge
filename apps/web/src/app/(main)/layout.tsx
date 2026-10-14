@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo, useCallback } from 'react';
 import Link from 'next/link';
 import { useUserStore, useAuthStore } from '@career-bridge/store';
 import { useRouter, usePathname } from 'next/navigation';
@@ -36,6 +36,71 @@ const getRouteLabel = (path: string): string => {
   return path.replace(/^\//, '').split('/')[0].replace('-', ' ');
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Stable memoized UserCard — defined OUTSIDE MainLayout to prevent recreation
+// on every navigation (was a major cause of sidebar re-render lag).
+// ─────────────────────────────────────────────────────────────────────────────
+interface UserCardProps {
+  profile: any;
+  isProfessional: boolean;
+  showLogout: boolean;
+  setShowLogout: (v: boolean | ((prev: boolean) => boolean)) => void;
+  handleLogout: () => void;
+}
+
+const UserCard = memo(function UserCard({ profile, isProfessional, showLogout, setShowLogout, handleLogout }: UserCardProps) {
+  if (!profile) {
+    return (
+      <div className="p-6">
+        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
+          <div className="w-10 h-10 rounded-xl bg-slate-200" />
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="h-3.5 bg-slate-200 rounded w-24" />
+            <div className="h-2.5 bg-slate-200 rounded w-16" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const avatarSrc =
+    profile.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'User')}&background=2563eb&color=fff`;
+
+  return (
+    <div className="p-6">
+      <div className="relative">
+        {showLogout && (
+          <div className="absolute bottom-full left-0 w-full mb-2">
+            <button
+              onClick={handleLogout}
+              className="w-full bg-white border border-slate-200 shadow-lg p-4 rounded-2xl text-sm font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-3"
+            >
+              <span>🚪</span> Logout
+            </button>
+          </div>
+        )}
+        <div
+          className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-300 transition-all group cursor-pointer"
+          onClick={() => setShowLogout((v: boolean) => !v)}
+        >
+          <div className="relative">
+            <img src={avatarSrc} alt={profile.name} className="w-10 h-10 rounded-xl object-cover" />
+            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-black text-slate-800 truncate">{profile.name}</div>
+            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              {isProfessional ? 'PROFESSIONAL' : (profile.role || 'STUDENT')}
+            </div>
+          </div>
+          <button className="text-slate-400 group-hover:text-slate-700 transition-colors">⚙️</button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,13 +108,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { logout, isAuthenticated, isInitialized } = useAuthStore();
   const [showLogout, setShowLogout] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+
   // Track whether we've already fetched for this auth session to avoid looping
   const fetchedForSession = useRef(false);
 
   useEffect(() => {
     if (!isInitialized) return;
     if (!isAuthenticated) {
-      // Reset so the next user who logs in triggers a fresh fetch
       fetchedForSession.current = false;
       router.replace('/login');
       return;
@@ -60,19 +126,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
   }, [isInitialized, isAuthenticated, profile, fetchProfile, router]);
 
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  // Close mobile drawer and reset navigation progress on route changes
+  // Close mobile drawer on route changes and reset scroll position instantly
   useEffect(() => {
     setMobileMenuOpen(false);
-    setIsNavigating(false);
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, [pathname]);
-
-  useEffect(() => {
-    const handleStart = () => setIsNavigating(true);
-    window.addEventListener('cb-nav-start', handleStart);
-    return () => window.removeEventListener('cb-nav-start', handleStart);
-  }, []);
 
   // Close mobile drawer on Escape key press
   useEffect(() => {
@@ -83,26 +143,67 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // mounted tracks whether we've completed client-side hydration.
   const [mounted, setMounted] = useState(false);
-  // Navigation history tracking for Back Button
-  const [historyStack, setHistoryStack] = useState<string[]>([]);
-
+  const didMount = useRef(false);
   useEffect(() => {
-    setMounted(true);
+    if (!didMount.current) {
+      didMount.current = true;
+      setMounted(true);
+    }
   }, []);
 
-  useEffect(() => {
-    setHistoryStack((prev) => {
-      if (prev.length > 0 && prev[prev.length - 1] === pathname) return prev;
-      return [...prev, pathname];
-    });
-  }, [pathname]);
+  // Lightweight history tracking without triggering extra re-render cascades
+  const prevPathRef = useRef<string | null>(null);
+  const currentPathRef = useRef(pathname);
 
-  // Check if we have an active local session
+  if (currentPathRef.current !== pathname) {
+    prevPathRef.current = currentPathRef.current;
+    currentPathRef.current = pathname;
+  }
+
+
+  // ── ALL hooks and derived values must be declared before any early return ──
+  const handleLogout = useCallback(() => {
+    logout();
+    router.push('/login');
+  }, [logout, router]);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  const roleLower = String(profile?.role || '').toLowerCase();
+  const isProfessional =
+    roleLower === 'professional' ||
+    roleLower === 'mentor' ||
+    (profile?.email || '').toLowerCase().includes('rajaprabhu') ||
+    (profile?.name || '').toLowerCase().includes('rajaprabhu') ||
+    (profile?.email || '').toLowerCase().includes('shriraam') ||
+    (profile?.name || '').toLowerCase().includes('shriraam') ||
+    (profile?.email || '').toLowerCase().includes('shriram') ||
+    (profile?.name || '').toLowerCase().includes('shriram');
+
+  const isHome = pathname === '/dashboard' || pathname === '/professional';
+  const canGoBack = Boolean(prevPathRef.current) || !isHome;
+  const previousPath = prevPathRef.current;
+  const previousLabel = previousPath ? getRouteLabel(previousPath) : 'Dashboard';
+  const currentLabel = getRouteLabel(pathname);
+
+  const handleBack = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(isProfessional ? '/professional' : '/dashboard');
+    }
+  }, [router, isProfessional]);
+
+  // Check if we have an active local session (needed for early return condition)
   const hasLocalSession = typeof window !== 'undefined' &&
     Boolean(localStorage.getItem('career_bridge_token') || localStorage.getItem('career-bridge-user'));
 
-  // Always render skeleton during SSR and first client hydration pass to guarantee 100% DOM match
+  // ── Early return after all hooks ────────────────────────────────────────────
+  // Always render skeleton during SSR and first client hydration pass
   if (!mounted || (!isInitialized && !hasLocalSession)) {
     return (
       <div className="flex h-screen bg-white overflow-hidden text-slate-800 animate-pulse">
@@ -146,98 +247,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
-  const roleLower = String(profile?.role || '').toLowerCase();
-  const isProfessional =
-    roleLower === 'professional' ||
-    roleLower === 'mentor' ||
-    (profile?.email || '').toLowerCase().includes('rajaprabhu') ||
-    (profile?.name || '').toLowerCase().includes('rajaprabhu') ||
-    (profile?.email || '').toLowerCase().includes('shriraam') ||
-    (profile?.name || '').toLowerCase().includes('shriraam') ||
-    (profile?.email || '').toLowerCase().includes('shriram') ||
-    (profile?.name || '').toLowerCase().includes('shriram');
-
-  const isHome = pathname === '/dashboard' || pathname === '/professional';
-  const canGoBack = historyStack.length > 1 || !isHome;
-  const previousPath = historyStack.length > 1 ? historyStack[historyStack.length - 2] : null;
-  const previousLabel = previousPath ? getRouteLabel(previousPath) : 'Dashboard';
-  const currentLabel = getRouteLabel(pathname);
-
-  const handleBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push(isProfessional ? '/professional' : '/dashboard');
-    }
-  };
-
-  const UserCard = () => {
-    if (!profile) {
-      return (
-        <div className="p-6">
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
-            <div className="w-10 h-10 rounded-xl bg-slate-200" />
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="h-3.5 bg-slate-200 rounded w-24" />
-              <div className="h-2.5 bg-slate-200 rounded w-16" />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const activeUser = profile;
-    const avatarSrc =
-      activeUser.avatar ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(activeUser.name || 'User')}&background=2563eb&color=fff`;
-
-    return (
-      <div className="p-6">
-        <div className="relative">
-          {showLogout && (
-            <div className="absolute bottom-full left-0 w-full mb-2 animate-float">
-              <button 
-                onClick={handleLogout}
-                className="w-full bg-white border border-slate-200 shadow-lg p-4 rounded-2xl text-sm font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-3"
-              >
-                <span>🚪</span> Logout
-              </button>
-            </div>
-          )}
-          <div 
-            className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-300 transition-all group cursor-pointer" 
-            onClick={() => setShowLogout(!showLogout)}
-          >
-            <div className="relative">
-              <img src={avatarSrc} alt={activeUser.name} className="w-10 h-10 rounded-xl object-cover" />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-black text-slate-800 truncate">{activeUser.name}</div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                {isProfessional ? 'PROFESSIONAL' : (activeUser.role || 'STUDENT')}
-              </div>
-            </div>
-            <button className="text-slate-400 group-hover:text-slate-700 transition-colors">
-              ⚙️
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="flex h-screen bg-white overflow-hidden text-slate-800 relative">
-      {/* ── Top Navigation Loading Glow Bar ──────────────────────────────── */}
-      {isNavigating && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 animate-pulse shadow-sm shadow-blue-500/50 pointer-events-none" />
-      )}
       {/* ── Desktop Sidebar (Permanent for lg: >= 1024px) ────────────────── */}
       <aside className="hidden lg:flex w-72 bg-white border-r border-slate-200 flex-col flex-shrink-0 z-30">
         {/* Logo */}
@@ -257,7 +268,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <Sidebar />
 
         {/* Desktop User Card */}
-        <UserCard />
+        <UserCard
+          profile={profile}
+          isProfessional={isProfessional}
+          showLogout={showLogout}
+          setShowLogout={setShowLogout}
+          handleLogout={handleLogout}
+        />
       </aside>
 
       {/* ── Mobile & Tablet Slide-Over Drawer (< 1024px) ─────────────────── */}
@@ -266,14 +283,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
-            onClick={() => setMobileMenuOpen(false)} 
+            onClick={closeMobileMenu} 
           />
 
           {/* Sliding container */}
           <div className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col z-50 animate-slide-in">
             {/* Drawer Header with Close Button */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
+              <Link href="/dashboard" onClick={closeMobileMenu} className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center font-black text-white text-base shadow-md">
                   CB
                 </div>
@@ -283,7 +300,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </Link>
               <button 
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
                 className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-lg transition-colors"
                 aria-label="Close menu"
               >
@@ -292,10 +309,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             {/* Drawer Navigation */}
-            <Sidebar onNavigate={() => setMobileMenuOpen(false)} />
+            <Sidebar onNavigate={closeMobileMenu} />
 
             {/* Drawer User Card */}
-            <UserCard />
+            <UserCard
+              profile={profile}
+              isProfessional={isProfessional}
+              showLogout={showLogout}
+              setShowLogout={setShowLogout}
+              handleLogout={handleLogout}
+            />
           </div>
         </div>
       )}
@@ -364,7 +387,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto relative bg-white">
+        <main ref={mainRef} className="flex-1 overflow-y-auto relative bg-white">
           {/* Subtle top gradient */}
           <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
           <div className="relative z-10 min-h-full">
@@ -372,14 +395,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </div>
         </main>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes slide-in {
-          from { transform: translateX(-100%); }
-          to { transform: translateX(0); }
-        }
-        .animate-slide-in { animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      `}} />
     </div>
   );
 }
+

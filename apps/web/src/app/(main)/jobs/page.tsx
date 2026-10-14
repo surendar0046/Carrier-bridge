@@ -95,6 +95,18 @@ function formatSalary(salary: any): string {
   return 'Competitive';
 }
 
+// ── Module-level jobs cache (persists across navigations, cleared on explicit search) ──
+type JobsCache = { jobs: any[]; total: number; role: string | null; ts: number };
+let _jobsCache: JobsCache | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function getCachedJobs(role: string | null): JobsCache | null {
+  if (!_jobsCache) return null;
+  if (Date.now() - _jobsCache.ts > CACHE_TTL_MS) { _jobsCache = null; return null; }
+  if (_jobsCache.role !== role) return null;
+  return _jobsCache;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function JobsPage() {
   const {
@@ -107,19 +119,24 @@ export default function JobsPage() {
     resetFilter,
   } = useStudentCareerMatch();
 
+  // Seed state from cache if available (instant re-visit)
+  const cached = getCachedJobs(null);
+
   const [keyword,        setKeyword]        = useState('');
   const [city,           setCity]           = useState('🇮🇳 All India');
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[0] | null>(null);
   const [page,           setPage]           = useState(1);
-  const [allJobs,        setAllJobs]        = useState<any[]>(() => INDIA_JOBS.slice(0, 24));
-  const [totalCount,     setTotalCount]     = useState(() => INDIA_JOBS.length);
+  const [allJobs,        setAllJobs]        = useState<any[]>(() => cached?.jobs || INDIA_JOBS.slice(0, 24));
+  const [totalCount,     setTotalCount]     = useState(() => cached?.total || INDIA_JOBS.length);
   const [typeFilter,     setTypeFilter]     = useState('');
   const [sourceFilter,   setSourceFilter]   = useState('');
   const [remoteOnly,     setRemoteOnly]     = useState(false);
   const [isLoading,      setIsLoading]      = useState(false);
   const [error,          setError]          = useState<string | null>(null);
-  const [searched,       setSearched]       = useState(false);
+  const [searched,       setSearched]       = useState(() => Boolean(cached));
   const [hasMore,        setHasMore]        = useState(true);
+  // Prevent double-fetch on strict-mode double-mount
+  const hasFetchedRef = useRef(false);
 
   // ── Fetch from /api/jobs ──────────────────────────────────────────────────
   const fetchJobs = useCallback(async (opts: {
@@ -163,6 +180,8 @@ export default function JobsPage() {
       } else {
         setAllJobs(jobs);
         setHasMore(jobs.length === 24);
+        // Write to module-level cache for instant re-visit
+        _jobsCache = { jobs, total: data.total || jobs.length, role: opts.role || null, ts: Date.now() };
       }
       setTotalCount(data.total || jobs.length);
     } catch (err: any) {
@@ -209,13 +228,31 @@ export default function JobsPage() {
 
   // Reactive load on activeRole change or initial mount
   useEffect(() => {
+    // Skip re-fetching if we already have cached data and role hasn't changed
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     if (hasCompletedQuiz && activeRole) {
       doSearch(true, null, activeRole, typeFilter, '');
-    } else {
+    } else if (!cached) {
       doSearch(true, null, null, typeFilter, keyword);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasCompletedQuiz, activeRole]);
+
+  // Re-search when activeRole changes after initial load (user clicks role pill)
+  const prevActiveRoleRef = useRef<string | null>(undefined as any);
+  useEffect(() => {
+    if (prevActiveRoleRef.current === undefined) {
+      prevActiveRoleRef.current = activeRole;
+      return;
+    }
+    if (prevActiveRoleRef.current === activeRole) return;
+    prevActiveRoleRef.current = activeRole;
+    hasFetchedRef.current = true; // keep guard on
+    doSearch(true, null, activeRole, typeFilter, '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRole]);
 
   // Category change
   const handleCategory = (cat: typeof CATEGORIES[0]) => {

@@ -387,7 +387,7 @@ export default function JobsPage() {
                     AI Career Match
                   </span>
                   <span className="text-xs text-slate-400 font-semibold">
-                    Personalized for Your Quiz Results
+                    Targeted Opportunities
                   </span>
                 </div>
                 <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 flex-wrap">
@@ -402,7 +402,7 @@ export default function JobsPage() {
                   ) : null}
                 </h2>
                 <p className="text-xs text-slate-300">
-                  Showing job offers & internships matching your quiz profile. Tap an alternative match or search any role to explore more.
+                  Showing job offers & internships matching {activeRole || primaryRole}. Tap an alternative role or search any role to explore more.
                 </p>
               </div>
 

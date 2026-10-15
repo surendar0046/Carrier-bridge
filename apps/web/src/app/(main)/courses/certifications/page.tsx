@@ -784,7 +784,7 @@ export default function FreeCertificationsPage() {
                     AI Certification Track
                   </span>
                   <span className="text-xs text-slate-400 font-semibold">
-                    Free Certifications Recommended for Your Quiz Profile
+                    Free Certifications Recommended for Your Career Path
                   </span>
                 </div>
                 <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 flex-wrap">

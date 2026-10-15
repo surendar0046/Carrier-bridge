@@ -53,20 +53,52 @@ export default function RoadmapPage() {
     } catch { /* ignore */ }
   }, [profile, activeRole]);
 
-  if (!rec) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-6 text-center p-8">
-        <div className="text-6xl">🗺️</div>
-        <h2 className="text-2xl font-bold text-white">No roadmap found</h2>
-        <p className="text-slate-400 max-w-sm">Complete the career assessment quiz first to generate your personalized roadmap.</p>
-        <Link href="/quiz" className="btn-primary px-8 py-3 rounded-2xl">Take the Quiz →</Link>
-      </div>
-    );
-  }
+  const DEFAULT_REC: Recommendation = {
+    role: activeRole || 'Full Stack Developer',
+    confidence: 96,
+    demandScore: 98,
+    salaryRange: '₹6L - ₹18L',
+    reasoning: 'High-demand industry pathway with balanced frontend, backend, and cloud skills.',
+    strengths: ['Problem Solving', 'Web Architecture', 'Agile Workflows'],
+    futureScope: 'Rapid trajectory towards Senior Full-Stack Engineer and Tech Lead roles.',
+  };
 
-  const roadmap = getRoleRoadmap(rec.role);
-  const phase = roadmap.phases[activePhase];
+  const activeRec = rec || DEFAULT_REC;
+  const roadmap = getRoleRoadmap(activeRec.role);
+  const phase = roadmap.phases[activePhase] || roadmap.phases[0];
   const accent = ACCENT_COLORS[phase.accent];
+
+  const handleRoleChange = (newRole: string) => {
+    const updated = { ...activeRec, role: newRole };
+    setRec(updated);
+    if (typeof window !== 'undefined') {
+      const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+      if (emailKey) {
+        try {
+          const stored = localStorage.getItem(`cb_prefs_${emailKey}`);
+          const prefs = stored ? JSON.parse(stored) : {};
+          prefs.activeRole = newRole;
+          prefs.recommendation = updated;
+          localStorage.setItem(`cb_prefs_${emailKey}`, JSON.stringify(prefs));
+        } catch {}
+      }
+      localStorage.setItem('cb_recommendation', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: newRole }));
+    }
+  };
+
+  const CAREER_ROLES = [
+    'Full Stack Developer',
+    'AI / ML Engineer',
+    'Backend Developer',
+    'Frontend Developer',
+    'Data Scientist',
+    'Cloud / Solutions Architect',
+    'DevOps Engineer',
+    'Cybersecurity Analyst',
+    'Product Designer (UI/UX)',
+    'Product Manager'
+  ];
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200">
@@ -80,22 +112,36 @@ export default function RoadmapPage() {
 
         {/* ── Header ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-3">
               <span className="text-4xl">{roadmap.emoji}</span>
               <div>
                 <p className="text-[11px] font-bold text-blue-400 uppercase tracking-[0.25em]">Your Dynamic Roadmap</p>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{rec.role}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{activeRec.role}</h1>
+                  {/* In-page role switcher */}
+                  <select
+                    value={activeRec.role}
+                    onChange={(e) => handleRoleChange(e.target.value)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-blue-400 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  >
+                    {CAREER_ROLES.map(r => (
+                      <option key={r} value={r} className="bg-slate-900 text-white">
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-            <p className="text-slate-400 text-sm max-w-lg italic">"{rec.reasoning}"</p>
+            <p className="text-slate-400 text-sm max-w-lg italic">"{activeRec.reasoning}"</p>
           </div>
 
           {/* Stats */}
           <div className="flex gap-6 shrink-0">
             {[
-              { label: 'Confidence', value: `${rec.confidence}%`, color: 'text-blue-400' },
-              { label: 'Market Demand', value: `${rec.demandScore}/100`, color: 'text-emerald-400' },
+              { label: 'Confidence', value: `${activeRec.confidence}%`, color: 'text-blue-400' },
+              { label: 'Market Demand', value: `${activeRec.demandScore}/100`, color: 'text-emerald-400' },
               { label: 'Salary Range', value: roadmap.salary, color: 'text-violet-400' },
             ].map(s => (
               <div key={s.label} className="text-center">

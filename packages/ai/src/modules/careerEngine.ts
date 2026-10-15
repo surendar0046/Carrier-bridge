@@ -576,4 +576,37 @@ export const getCareerRecommendation = (
   };
 };
 
-export const careerEngine = { getCareerRecommendation };
+export const getRecommendationForRole = (
+  roleName: string,
+  track: 'first_year' | 'fresher' | 'professional' = 'fresher'
+): CareerRecommendation => {
+  const meta = ROLE_PROFILES[roleName] ?? ROLE_PROFILES['Full-Stack Developer'];
+  const otherRoles = Object.keys(ROLE_PROFILES)
+    .filter(r => r !== roleName && ROLE_PROFILES[r].domain === meta.domain)
+    .slice(0, 2);
+  const closeRoles: AlternativeRole[] = (otherRoles.length >= 2 ? otherRoles : ['Frontend Developer', 'Backend Developer'].filter(r => r !== roleName)).slice(0, 2).map((r, i) => {
+    const rMeta = ROLE_PROFILES[r] ?? ROLE_PROFILES['Software Developer'];
+    return {
+      role: r,
+      confidence: 88 - i * 4,
+      domain: rMeta.domain,
+      reasoning: rMeta.reasoningTemplate,
+    };
+  });
+
+  return {
+    role: roleName,
+    confidence: 96,
+    reasoning: meta.reasoningTemplate,
+    strengths: meta.strengths,
+    weaknesses: meta.weaknesses,
+    salaryRange: meta.salaryRange,
+    futureScope: meta.futureScope,
+    aiImpact: meta.aiImpact,
+    demandScore: meta.demandScore,
+    closeRoles,
+    studentTrack: track as any,
+  };
+};
+
+export const careerEngine = { getCareerRecommendation, getRecommendationForRole, ROLE_PROFILES };

@@ -33,8 +33,16 @@ export default function RoadmapPage() {
       }
       
       if (!currentRec) {
-        const stored = localStorage.getItem('cb_recommendation');
-        if (stored) currentRec = JSON.parse(stored);
+        const defaultRole = activeRole || 'Full Stack Developer';
+        currentRec = {
+          role: defaultRole,
+          confidence: 96,
+          demandScore: 98,
+          salaryRange: '₹6L - ₹18L',
+          reasoning: 'High-demand industry pathway with balanced frontend, backend, and cloud skills.',
+          strengths: ['Problem Solving', 'Web Architecture', 'Agile Workflows'],
+          futureScope: 'Rapid trajectory towards Senior Full-Stack Engineer and Tech Lead roles.',
+        };
       }
       
       if (currentRec && activeRole) {

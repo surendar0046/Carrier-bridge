@@ -34,50 +34,11 @@ export default function LoginPage() {
     }
   }, [clearError, isAuthenticated]);
 
-  const hasUserTakenTest = (userProfile: any, userEmail: string): boolean => {
-    if (typeof window === 'undefined') return false;
-    const emailKey = (userEmail || userProfile?.email || '').toLowerCase().trim();
-    if (!emailKey) return false;
-
-    // 1. Direct completion flag in localStorage
-    if (localStorage.getItem(`cb_test_completed_${emailKey}`) === 'true') {
-      return true;
-    }
-
-    // 2. Preferences record in localStorage
-    try {
-      const prefsStr = localStorage.getItem(`cb_prefs_${emailKey}`);
-      if (prefsStr) {
-        const prefs = JSON.parse(prefsStr);
-        if (prefs?.hasCompletedTest || prefs?.recommendation) {
-          return true;
-        }
-      }
-    } catch { }
-
-    // 3. User profile flag
-    if ((userProfile as any)?.hasCompletedAssessment) {
-      return true;
-    }
-
-    return false;
-  };
-
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
       if (!profile) {
         fetchProfile();
       } else {
-        const userEmail = profile.email || email;
-        const testTaken = hasUserTakenTest(profile, userEmail);
-
-        if (!testTaken) {
-          // If the sign-in user has never taken the test, show test once!
-          router.replace('/quiz');
-          return;
-        }
-
-        // Test already completed: proceed straight to dashboard
         const roleLower = String(profile.role || '').toLowerCase();
         const isProUser =
           role === 'professional' ||
@@ -125,26 +86,21 @@ export default function LoginPage() {
         await updateProfile({ role: AppUserRole.PROFESSIONAL }).catch(() => {});
       }
       const activeProf = useUserStore.getState().profile || profile;
-      const testTaken = hasUserTakenTest(activeProf, email);
-      if (!testTaken) {
-        router.replace('/quiz');
+      const roleLower = String(activeProf?.role || '').toLowerCase();
+      const isProUser =
+        role === 'professional' ||
+        roleLower === 'professional' ||
+        roleLower === 'mentor' ||
+        (email || '').toLowerCase().includes('rajaprabhu') ||
+        (activeProf?.name || '').toLowerCase().includes('rajaprabhu') ||
+        (email || '').toLowerCase().includes('shriraam') ||
+        (activeProf?.name || '').toLowerCase().includes('shriraam') ||
+        (email || '').toLowerCase().includes('shriram') ||
+        (activeProf?.name || '').toLowerCase().includes('shriram');
+      if (isProUser) {
+        router.replace('/professional');
       } else {
-        const roleLower = String(activeProf?.role || '').toLowerCase();
-        const isProUser =
-          role === 'professional' ||
-          roleLower === 'professional' ||
-          roleLower === 'mentor' ||
-          (email || '').toLowerCase().includes('rajaprabhu') ||
-          (activeProf?.name || '').toLowerCase().includes('rajaprabhu') ||
-          (email || '').toLowerCase().includes('shriraam') ||
-          (activeProf?.name || '').toLowerCase().includes('shriraam') ||
-          (email || '').toLowerCase().includes('shriram') ||
-          (activeProf?.name || '').toLowerCase().includes('shriram');
-        if (isProUser) {
-          router.replace('/professional');
-        } else {
-          router.replace('/dashboard');
-        }
+        router.replace('/dashboard');
       }
     }
   };

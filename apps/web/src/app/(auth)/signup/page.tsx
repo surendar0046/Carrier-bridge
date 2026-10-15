@@ -31,7 +31,7 @@ export default function SignupPage() {
           localStorage.setItem(`cb_student_track_${emailKey}`, 'professional');
         }
       }
-      router.replace('/quiz');
+      router.replace(role === 'professional' ? '/professional' : '/dashboard');
     }
   }, [isInitialized, isAuthenticated, email, role, studentTrack, router]);
 
@@ -52,7 +52,7 @@ export default function SignupPage() {
     }
     const ok = await signup(name, email, password, role);
     if (ok) {
-      router.replace(role === 'professional' ? '/professional' : '/quiz');
+      router.replace(role === 'professional' ? '/professional' : '/dashboard');
     }
   };
 

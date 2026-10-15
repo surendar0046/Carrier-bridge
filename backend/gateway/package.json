@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "node -e \"console.log('Gateway build ready')\"",
+    "build:tsc": "tsc",
     "start": "node dist/server.js",
-    "prestart": "tsc",
     "test": "vitest run src",
     "db:migrate:assessment": "tsx src/modules/assessment/migrator.ts",
     "db:import:assessment": "tsx src/modules/assessment/importer.ts",

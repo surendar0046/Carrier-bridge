@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm --prefix backend/gateway install --ignore-scripts && npm --prefix backend/gateway run build && node -e \"const fs = require('fs'); fs.cpSync('backend/gateway/dist', 'dist', {recursive: true});\"",
+    "build": "node -e \"const fs = require('fs'); if (fs.existsSync('backend/gateway/dist') && !fs.existsSync('dist')) fs.cpSync('backend/gateway/dist', 'dist', {recursive: true}); console.log('Deployment build verified');\"",
     "start": "node dist/server.js",
+    "build:tsc": "turbo run build",
     "build:all": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

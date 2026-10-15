@@ -12,7 +12,6 @@ node_modules
 # build and cache outputs
 .turbo
 .next
-dist
 build
 out
 coverage

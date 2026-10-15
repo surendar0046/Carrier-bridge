@@ -37,3 +37,5 @@ Thumbs.db
 # Temp scratch & generated files
 tree-output.txt
 .agents
+
+.vercel

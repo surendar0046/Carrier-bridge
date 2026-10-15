@@ -97,7 +97,7 @@ export default function CoursesPage() {
         {tab === 'my-courses' && (
           <div className="space-y-8">
             {/* AI match banner */}
-            {hasCompletedQuiz && (primaryRole || activeRole) && (
+            {(primaryRole || activeRole) && (
               <div className="p-5 md:p-6 rounded-2xl bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-violet-900/30 border border-blue-500/30 shadow-xl backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

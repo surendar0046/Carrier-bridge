@@ -121,7 +121,12 @@ export default function DashboardPage() {
                 <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm premium-glow-card">
                   <div className="flex justify-between items-end mb-6">
                     <div>
-                      <div className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-2">Current Career Path</div>
+                      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                        <div className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em]">Target Career Path</div>
+                        <Link href="/roadmap" className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group">
+                          View Roadmap <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </Link>
+                      </div>
                       {isEditingRole ? (
                         <div className="flex items-center gap-2 mt-1">
                            <input 
@@ -135,7 +140,18 @@ export default function DashboardPage() {
                            <button 
                              onClick={() => { 
                                if (newRole.trim()) { 
-                                 updateActiveRole(newRole.trim()); 
+                                 updateActiveRole(newRole.trim());
+                                 if (typeof window !== 'undefined') {
+                                   const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+                                   const storageKey = emailKey ? `cb_prefs_${emailKey}` : 'cb_guest_prefs';
+                                   try {
+                                     const stored = localStorage.getItem(storageKey);
+                                     const prefs = stored ? JSON.parse(stored) : {};
+                                     prefs.activeRole = newRole.trim();
+                                     localStorage.setItem(storageKey, JSON.stringify(prefs));
+                                   } catch {}
+                                   window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: newRole.trim() }));
+                                 }
                                } 
                                setIsEditingRole(false); 
                              }} 
@@ -151,18 +167,59 @@ export default function DashboardPage() {
                            </button>
                         </div>
                       ) : (
-                        <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                           {activeRole || 'Not Selected'}
-                           <button 
-                             onClick={() => { 
-                               setNewRole(activeRole || ''); 
-                               setIsEditingRole(true); 
-                             }} 
-                             className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1 rounded-md border border-blue-200"
-                           >
-                             ✎ Edit Role
-                           </button>
-                        </h3>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-2xl font-bold text-slate-900">
+                             {activeRole || 'Full-Stack Developer'}
+                          </h3>
+                          <select
+                            value={activeRole || 'Full-Stack Developer'}
+                            onChange={(e) => {
+                              const roleVal = e.target.value;
+                              updateActiveRole(roleVal);
+                              if (typeof window !== 'undefined') {
+                                const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+                                const storageKey = emailKey ? `cb_prefs_${emailKey}` : 'cb_guest_prefs';
+                                try {
+                                  const stored = localStorage.getItem(storageKey);
+                                  const prefs = stored ? JSON.parse(stored) : {};
+                                  prefs.activeRole = roleVal;
+                                  localStorage.setItem(storageKey, JSON.stringify(prefs));
+                                } catch {}
+                                window.dispatchEvent(new CustomEvent('cb-active-role-changed', { detail: roleVal }));
+                              }
+                            }}
+                            className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 outline-none focus:border-blue-400 cursor-pointer"
+                          >
+                            {[
+                              'Full-Stack Developer',
+                              'Frontend Developer',
+                              'Backend Developer',
+                              'AI/ML Engineer',
+                              'Data Scientist',
+                              'Data Analyst',
+                              'Cloud Engineer',
+                              'DevOps Engineer',
+                              'Cybersecurity Analyst',
+                              'UI/UX Designer',
+                              'Mobile App Developer',
+                              'QA / Software Tester',
+                              'Product Manager'
+                            ].map(r => (
+                              <option key={r} value={r}>
+                                {r}
+                              </option>
+                            ))}
+                          </select>
+                          <button 
+                            onClick={() => { 
+                              setNewRole(activeRole || ''); 
+                              setIsEditingRole(true); 
+                            }} 
+                            className="text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors px-2 py-1 rounded-md border border-slate-200"
+                          >
+                            Custom
+                          </button>
+                        </div>
                       )}
                     </div>
                     <div className="text-right">
@@ -240,7 +297,7 @@ export default function DashboardPage() {
                   {[
                     { label: 'Resume Builder', icon: '📄', href: '/resume' },
                     { label: 'Mentor Matching', icon: '🤝', href: '/mentor' },
-                    { label: 'Skill Roadmap', icon: '🗺️', href: '/courses/roadmap' },
+                    { label: 'Skill Roadmap', icon: '🗺️', href: '/roadmap' },
                     { label: 'Learning Center', icon: '🎓', href: '/courses' },
                   ].map((item) => (
                     <Link key={item.label} href={item.href} className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-200">

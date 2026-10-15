@@ -687,9 +687,9 @@ export default function FreeCertificationsPage() {
   const [showPopular,  setShowPopular]  = useState(false);
 
   const activeRoleKeywords = useMemo(() => {
-    if (!hasCompletedQuiz || !activeRole || search.trim()) return [];
+    if (!activeRole || search.trim()) return [];
     return getKeywordsForRole(activeRole).map(k => k.toLowerCase());
-  }, [hasCompletedQuiz, activeRole, search]);
+  }, [activeRole, search]);
 
   const filtered = useMemo(() => {
     return COURSES.filter(c => {
@@ -771,8 +771,8 @@ export default function FreeCertificationsPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-8">
 
-        {/* ── AI Tailored Certifications Banner (Quiz Matched) ──────────── */}
-        {hasCompletedQuiz && (primaryRole || activeRole) && (
+        {/* ── AI Tailored Certifications Banner ──────────── */}
+        {(primaryRole || activeRole) && (
           <div className="mb-8 p-5 md:p-6 rounded-3xl bg-gradient-to-r from-violet-900/30 via-indigo-900/20 to-blue-900/30 border border-violet-500/30 shadow-2xl shadow-violet-950/50 backdrop-blur-md relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
             

@@ -57,12 +57,15 @@ export function getKeywordsForRole(roleName: string): string[] {
 
 export function useStudentCareerMatch(): StudentCareerMatchState {
   const { profile } = useUserStore();
-  const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(false);
-  const [primaryRole, setPrimaryRole] = useState<string | null>(null);
-  const [primaryConfidence, setPrimaryConfidence] = useState<number>(0);
-  const [closeRoles, setCloseRoles] = useState<AlternativeRoleMatch[]>([]);
-  const [activeRole, setActiveRoleState] = useState<string | null>(null);
-  const [track, setTrack] = useState<'first_year' | 'fresher' | null>(null);
+  const [hasCompletedQuiz, setHasCompletedQuiz] = useState<boolean>(true);
+  const [primaryRole, setPrimaryRole] = useState<string | null>('Full-Stack Developer');
+  const [primaryConfidence, setPrimaryConfidence] = useState<number>(96);
+  const [closeRoles, setCloseRoles] = useState<AlternativeRoleMatch[]>([
+    { role: 'AI/ML Engineer', confidence: 93, domain: 'Artificial Intelligence & Machine Learning' },
+    { role: 'Cloud Engineer', confidence: 91, domain: 'Cloud Architecture & DevOps' },
+  ]);
+  const [activeRole, setActiveRoleState] = useState<string | null>('Full-Stack Developer');
+  const [track, setTrack] = useState<'first_year' | 'fresher' | null>('fresher');
 
   const emailKey = useMemo(() => {
     return profile?.email ? profile.email.toLowerCase().trim() : '';

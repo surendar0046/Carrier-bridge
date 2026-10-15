@@ -7,7 +7,7 @@ export default function QuizPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/roadmap');
+    router.replace('/dashboard');
   }, [router]);
 
   return (

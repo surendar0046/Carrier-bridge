@@ -222,9 +222,9 @@ export default function RoadmapPage() {
             </div>
 
             <div className="glass-card p-6 space-y-3">
-              <h3 className="font-bold text-sm uppercase tracking-widest text-slate-400">💪 Your Strengths</h3>
+              <h3 className="font-bold text-sm uppercase tracking-widest text-slate-400">💪 Core Strengths</h3>
               <ul className="space-y-2">
-                {rec.strengths.map(s => (
+                {(activeRec.strengths || ['Problem Solving', 'System Design', 'Continuous Learning']).map(s => (
                   <li key={s} className="text-sm text-slate-300 flex items-center gap-2">
                     <span className="text-emerald-400">✓</span> {s}
                   </li>
@@ -234,14 +234,14 @@ export default function RoadmapPage() {
 
             <div className="glass-card p-6 space-y-2">
               <h3 className="font-bold text-sm uppercase tracking-widest text-slate-400">📈 Future Scope</h3>
-              <p className="text-sm text-slate-300">{rec.futureScope}</p>
+              <p className="text-sm text-slate-300">{activeRec.futureScope || 'Strong career trajectory with accelerating industry demand.'}</p>
               <div className="flex items-center gap-2 pt-1">
                 <span className="text-[10px] text-slate-500 font-bold uppercase">AI Resilience</span>
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"
-                    style={{ width: `${100 - rec.aiImpact}%` }} />
+                    style={{ width: `${100 - (activeRec.aiImpact || 15)}%` }} />
                 </div>
-                <span className="text-[10px] text-emerald-400 font-bold">{100 - rec.aiImpact}%</span>
+                <span className="text-[10px] text-emerald-400 font-bold">{100 - (activeRec.aiImpact || 15)}%</span>
               </div>
             </div>
           </div>

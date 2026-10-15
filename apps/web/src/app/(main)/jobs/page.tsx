@@ -232,13 +232,13 @@ export default function JobsPage() {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
 
-    if (hasCompletedQuiz && activeRole) {
+    if (activeRole) {
       doSearch(true, null, activeRole, typeFilter, '');
     } else if (!cached) {
       doSearch(true, null, null, typeFilter, keyword);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasCompletedQuiz, activeRole]);
+  }, [activeRole]);
 
   // Re-search when activeRole changes after initial load (user clicks role pill)
   const prevActiveRoleRef = useRef<string | null>(undefined as any);
@@ -374,8 +374,8 @@ export default function JobsPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* ── AI Tailored Recommendations Banner (Quiz Matched) ──────────── */}
-        {hasCompletedQuiz && (primaryRole || activeRole) && (
+        {/* ── AI Tailored Recommendations Banner ──────────── */}
+        {(primaryRole || activeRole) && (
           <div className="mb-8 p-5 md:p-6 rounded-3xl bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-purple-900/30 border border-blue-500/30 shadow-2xl shadow-blue-950/50 backdrop-blur-md relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
             

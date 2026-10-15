@@ -2,20 +2,22 @@
   "name": "career-bridge",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "build": "node -e \"const fs = require('fs'); if (fs.existsSync('backend/gateway/dist') && !fs.existsSync('dist')) fs.cpSync('backend/gateway/dist', 'dist', {recursive: true}); console.log('Deployment build verified');\"",
-    "start": "node dist/server.js",
+    "build": "npm --prefix apps/web run build && node scripts/prepare-deploy.js",
+    "start": "node server.js",
+    "dev": "npm --prefix apps/web run dev",
+    "lint": "npm --prefix apps/web run lint",
     "build:tsc": "turbo run build",
-    "build:all": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "db:migrate:assessment": "pnpm --filter @career-bridge/gateway db:migrate:assessment",
-    "db:import:assessment": "pnpm --filter @career-bridge/gateway db:import:assessment",
-    "db:verify:assessment": "pnpm --filter @career-bridge/gateway db:verify:assessment",
-    "test:assessment": "pnpm --filter @career-bridge/gateway test"
+    "build:all": "turbo run build"
   },
   "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",

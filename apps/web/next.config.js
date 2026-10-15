@@ -1,11 +1,24 @@
+process.env.NEXT_IGNORE_INCORRECT_LOCKFILE = '1';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
     domains: ['ui-avatars.com', 'images.unsplash.com'],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
     deviceSizes: [640, 750, 828, 1080, 1200],
   },
+  transpilePackages: [
+    '@career-bridge/store',
+    '@career-bridge/types',
+    '@career-bridge/services',
+    '@career-bridge/utils',
+    '@career-bridge/ai',
+    '@career-bridge/config',
+    '@career-bridge/ui',
+    '@career-bridge/realtime',
+  ],
   eslint: {
     ignoreDuringBuilds: true,
   },

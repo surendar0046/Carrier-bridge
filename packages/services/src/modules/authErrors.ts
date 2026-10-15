@@ -22,6 +22,9 @@ export const mapAuthError = (code: string): string => {
       return 'Network error. Please check your internet connection.';
     case 'auth/internal-error':
       return 'An internal error occurred. Please try again later.';
+    case 'auth/invalid-api-key':
+    case 'auth/api-key-not-valid':
+      return 'Authentication service configuration error. Please contact administrator.';
     default:
       return 'An unexpected error occurred. Please try again.';
   }

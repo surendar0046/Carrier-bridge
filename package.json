@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm --prefix backend/gateway install --ignore-scripts && npm --prefix backend/gateway run build",
-    "start": "node backend/gateway/dist/server.js",
+    "build": "npm --prefix backend/gateway install --ignore-scripts && npm --prefix backend/gateway run build && node -e \"const fs = require('fs'); fs.cpSync('backend/gateway/dist', 'dist', {recursive: true});\"",
+    "start": "node dist/server.js",
     "build:all": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
@@ -13,6 +13,20 @@
     "db:import:assessment": "pnpm --filter @career-bridge/gateway db:import:assessment",
     "db:verify:assessment": "pnpm --filter @career-bridge/gateway db:verify:assessment",
     "test:assessment": "pnpm --filter @career-bridge/gateway test"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "groq-sdk": "^1.2.0",
+    "helmet": "^7.1.0",
+    "ioredis": "^6.0.0",
+    "mysql2": "^3.24.6",
+    "openai": "^6.37.0",
+    "socket.io": "^4.6.1",
+    "typescript": "^5.0.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "turbo": "latest",

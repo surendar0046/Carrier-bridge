@@ -1,6 +1,6 @@
 {
-  "command": "node backend/gateway/dist/server.js",
-  "buildPath": "backend/gateway/dist",
+  "command": "node dist/server.js",
+  "buildPath": "dist",
   "stack": "node22",
   "memory": 512,
   "env_variables": {

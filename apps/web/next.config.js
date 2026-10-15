@@ -2,7 +2,6 @@ process.env.NEXT_IGNORE_INCORRECT_LOCKFILE = '1';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   images: {
     domains: ['ui-avatars.com', 'images.unsplash.com'],
     formats: ['image/avif', 'image/webp'],

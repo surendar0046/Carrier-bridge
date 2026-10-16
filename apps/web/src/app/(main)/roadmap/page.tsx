@@ -60,6 +60,8 @@ export default function RoadmapPage() {
     salaryRange: '₹6L - ₹18L',
     reasoning: 'High-demand industry pathway with balanced frontend, backend, and cloud skills.',
     strengths: ['Problem Solving', 'Web Architecture', 'Agile Workflows'],
+    weaknesses: ['Advanced Microservices', 'High-throughput Caching'],
+    aiImpact: 14,
     futureScope: 'Rapid trajectory towards Senior Full-Stack Engineer and Tech Lead roles.',
   };
 

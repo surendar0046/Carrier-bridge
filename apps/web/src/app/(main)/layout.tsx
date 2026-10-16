@@ -123,8 +123,26 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     if (!fetchedForSession.current || !profile) {
       fetchedForSession.current = true;
       fetchProfile();
+      return;
     }
-  }, [isInitialized, isAuthenticated, profile, fetchProfile, router]);
+
+    // Role guard: Ensure students cannot access mentor/recruiter creation portals
+    const roleLower = String(profile?.role || '').toLowerCase();
+    const isStudent = roleLower === 'student';
+    if (isStudent && (pathname.startsWith('/professional/resources/new') || pathname.startsWith('/professional/tests/new'))) {
+      router.replace('/dashboard');
+      return;
+    }
+
+    // Route guard: Verified user with incomplete onboarding is redirected to /onboarding
+    if (isStudent && profile.email) {
+      const email = profile.email.toLowerCase().trim();
+      const hasOnboarded = localStorage.getItem(`cb_onboarding_completed_${email}`) === 'true';
+      if (!hasOnboarded) {
+        router.replace('/onboarding');
+      }
+    }
+  }, [isInitialized, isAuthenticated, profile, fetchProfile, pathname, router]);
 
   // Close mobile drawer on route changes and reset scroll position instantly
   useEffect(() => {

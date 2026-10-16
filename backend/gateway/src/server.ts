@@ -7,6 +7,7 @@ import Groq from 'groq-sdk';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import { assessmentRouter } from './modules/assessment/routes';
+import { onboardingRouter } from './modules/onboarding/routes';
 import { testDbConnection, pool } from './config/db';
 import { runAssessmentMigrations } from './modules/assessment/migrator';
 import { importAssessmentQuestions } from './modules/assessment/importer';
@@ -31,6 +32,9 @@ app.use(express.json());
 
 // ── Assessment Routes ───────────────────────────────────────────────────────
 app.use('/api/assessment', assessmentRouter);
+
+// ── Onboarding Routes ───────────────────────────────────────────────────────
+app.use('/api/onboarding', onboardingRouter);
 
 // ── Health Check ────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

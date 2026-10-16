@@ -79,3 +79,69 @@ Questions are stored in `/data/assessment_questions.json` and validated with str
 - **`POST /api/assessment/attempts/:id/responses`**: Records answers (single or batch) with ownership check.
 - **`POST /api/assessment/attempts/:id/complete`**: Evaluates deterministic scores, returns top 3 career tracks and skill gaps.
 - **`GET /api/assessment/results/me`**: Returns the student's latest recommendation and history.
+
+---
+
+## 🧭 3-Stage Post-Login Onboarding System
+
+Every verified-email student lands on a tailored onboarding flow splitting them into three targeted journeys before entering the dashboard with their customized roadmaps and courses.
+
+### 📊 System Architecture & Flowchart
+
+```mermaid
+flowchart TD
+    A[Student Verified Login] --> B{Completed Onboarding?}
+    B -- No --> C[/onboarding: Stage Picker]
+    B -- Yes --> D[/dashboard: Personalized Hub]
+    
+    C --> E[12th Standard]
+    C --> F[1st & 2nd Year College]
+    C --> G[3rd & 4th Year College]
+    
+    E --> E1[Screen 2: /onboarding/school<br/>7 Discovery Questions + Under-18 Consent]
+    F --> F1[Screen 3: /onboarding/early<br/>6 Domain Fixing Questions]
+    G --> G1[Screen 4: /onboarding/final<br/>8 Backwards Placement Questions]
+    
+    E1 --> H[Pure Recommendation Engine<br/>packages/ai/onboardingEngine.ts]
+    F1 --> H
+    G1 --> H
+    
+    H --> I[Reliability Signals Check<br/>Speed, Uniformity & Contradiction]
+    I -- Failed --> J[Review Answers Prompt]
+    I -- Passed --> K[Database Persistence<br/>onboarding_responses & onboarding_results]
+    
+    K --> D
+    D --> L[Suggested For You Card<br/>With Reasons & Edit Answers Link]
+    D --> M[Curated Courses Loaded<br/>Python, Web, Java, Cloud]
+    D --> N[Optional: Verify Your Fit<br/>Skill Assessment Link]
+```
+
+### 📚 Data-Driven Question Banks
+Questions are defined in [`apps/web/src/data/onboardingQuestions.ts`](file:///d:/Niral-Final/career-bridge/apps/web/src/data/onboardingQuestions.ts) and can be modified or seeded directly:
+
+| Stage | Path | Purpose | Output |
+| :--- | :--- | :--- | :--- |
+| **12th Standard** | `/onboarding/school` | Branch discovery & pre-college preparation | Top 2 suggested branches (e.g., CSE, AI/DS) + Starting Work Path + Verified BLS/SIA citations |
+| **1st & 2nd Year** | `/onboarding/early` | Domain fixing & fundamental projects | Primary domain + Alternate domain + Beginner-to-intermediate roadmap |
+| **3rd & 4th Year** | `/onboarding/final` | Placement readiness & company prep | Backwards weekly sprint plan from placement month + Company-type templates |
+
+### ⚙️ How to Edit Questions and Recommendation Rules
+1. **Questions**: Edit [`apps/web/src/data/onboardingQuestions.ts`](file:///d:/Niral-Final/career-bridge/apps/web/src/data/onboardingQuestions.ts). Update questions, options, icons, or add new ones without component code changes.
+2. **Rules & Weights**: Edit [`packages/ai/src/modules/onboardingRules.ts`](file:///d:/Niral-Final/career-bridge/packages/ai/src/modules/onboardingRules.ts).
+   - Adjust `BRANCH_CATALOG` weights and verified citations (e.g. BLS, IEEE, IEA).
+   - Adjust `DOMAIN_CATALOG` skill lists, beginner modules, and roadmaps.
+   - Adjust `COMPANY_TYPE_TEMPLATES` for Product, IT Services, Startups, Core, and PSU tracks.
+3. **Engine Evaluation**: Pure deterministic functions live in [`packages/ai/src/modules/onboardingEngine.ts`](file:///d:/Niral-Final/career-bridge/packages/ai/src/modules/onboardingEngine.ts).
+
+### ⌨️ CLI Commands & Verification
+```bash
+# Run the 20-step automated verification suite testing all 3 journeys, guards & persistence
+pnpm verify:onboarding
+
+# Run Gateway unit & integration test suites
+pnpm --filter @career-bridge/gateway test
+
+# Start the web development server
+pnpm dev
+```
+

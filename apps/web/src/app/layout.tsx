@@ -1,16 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { Poppins } from 'next/font/google'
 import '../styles/globals.css'
 import { Providers } from '../lib/providers'
 import PWAInstaller from '../components/PWAInstaller'
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins',
-  display: 'swap',
-  preload: true,
-})
 
 export const viewport: Viewport = {
   themeColor: '#ffffff',
@@ -33,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.className} bg-white text-slate-800 antialiased selection:bg-blue-500/20 selection:text-blue-900`}>
+      <body suppressHydrationWarning className="bg-white text-slate-800 antialiased selection:bg-blue-500/20 selection:text-blue-900 font-sans">
         <Providers>
           <PWAInstaller />
           {children}

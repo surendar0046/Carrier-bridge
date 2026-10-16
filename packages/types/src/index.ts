@@ -10,3 +10,4 @@ export * from './models/Gamification';
 export * from './models/Practice';
 export * from './api/responses';
 export * from './models/Career';
+export * from './models/Onboarding';

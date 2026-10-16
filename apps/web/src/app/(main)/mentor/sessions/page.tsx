@@ -9,9 +9,57 @@ export default function MentorSessionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Read local mentor meetings from onboarding
+    const localSessions: MentorSession[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('cb_mentor_meeting_') || key.startsWith('cb_mentor_sessions_'))) {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const data = JSON.parse(raw);
+              if (Array.isArray(data)) {
+                data.forEach((d: any, idx: number) => {
+                  if (d.meetCode) {
+                    localSessions.push({
+                      id: `local-session-${d.meetCode}-${idx}`,
+                      mentorId: d.mentorId || 'mentor-001',
+                      userId: 'current-user',
+                      status: SessionStatus.SCHEDULED,
+                      scheduledAt: `${d.date}T${d.time || '17:00'}:00.000Z`,
+                      duration: 30,
+                      topic: d.topic || 'Onboarding Mentorship Guidance',
+                      meetingUrl: d.meetUrl || `/meet/${d.meetCode}`,
+                    });
+                  }
+                });
+              } else if (data && data.meetCode) {
+                localSessions.push({
+                  id: `meeting-${data.meetCode}`,
+                  mentorId: data.mentorId || 'mentor-001',
+                  userId: 'current-user',
+                  status: SessionStatus.SCHEDULED,
+                  scheduledAt: `${data.date}T${data.time || '17:00'}:00.000Z`,
+                  duration: 30,
+                  topic: data.topic || 'Onboarding Mentorship Guidance',
+                  meetingUrl: data.meetUrl || `/meet/${data.meetCode}`,
+                });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error reading local mentor sessions:', err);
+      }
+    }
+
     mentorService.getMySessions().then((res) => {
-      if (res && res.length > 0) {
-        setSessions(res);
+      const combined = [...localSessions, ...(res || [])];
+      if (combined.length > 0) {
+        // Deduplicate by meetingUrl or id
+        const unique = Array.from(new Map(combined.map(s => [s.meetingUrl || s.id, s])).values());
+        setSessions(unique);
       } else {
         // Fallback default sample session so user can test the live realtime room immediately
         setSessions([
@@ -23,7 +71,7 @@ export default function MentorSessionsPage() {
             scheduledAt: new Date(Date.now() + 1800000).toISOString(),
             duration: 45,
             topic: 'System Design & Distributed Scalability Review',
-            meetingUrl: '/mentor/mentor-001',
+            meetingUrl: '/meet/sys-design-live?mentorId=mentor-001',
           },
           {
             id: 'session-live-02',
@@ -33,12 +81,15 @@ export default function MentorSessionsPage() {
             scheduledAt: new Date(Date.now() + 86400000).toISOString(),
             duration: 60,
             topic: 'Cloud Infrastructure & DevOps Mock Interview',
-            meetingUrl: '/mentor/mentor-002',
+            meetingUrl: '/meet/devops-cloud-live?mentorId=mentor-002',
           }
         ]);
       }
       setLoading(false);
     }).catch(() => {
+      if (localSessions.length > 0) {
+        setSessions(localSessions);
+      }
       setLoading(false);
     });
   }, []);
@@ -147,6 +198,15 @@ export default function MentorSessionsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    {session.meetingUrl && (
+                      <Link
+                        href={session.meetingUrl}
+                        target="_blank"
+                        className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-1.5"
+                      >
+                        <span>📹</span> Join Google Meet Call
+                      </Link>
+                    )}
                     <a
                       href={`https://wa.me/${waNumber}?text=${encodeURIComponent(`*Book for mentor session*\n\nHello ${mentorInfo.name}, following up on our mentor session booking.`)}`}
                       target="_blank"

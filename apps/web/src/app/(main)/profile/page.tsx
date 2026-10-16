@@ -15,9 +15,13 @@ import {
   Edit3, 
   X,
   Plus,
-  Trash2
+  Trash2,
+  Compass,
+  History,
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@career-bridge/utils';
+import { onboardingService } from '@career-bridge/services';
 
 export default function ProfilePage() {
   const { profile, fetchProfile, updateProfile, isLoading, error } = useUserStore();
@@ -25,6 +29,10 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>(null);
   const [timedOut, setTimedOut] = useState(false);
+  const [currentStage, setCurrentStage] = useState<string | null>(null);
+  const [stageResult, setStageResult] = useState<any>(null);
+  const [stageHistory, setStageHistory] = useState<any[]>([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => { 
@@ -34,6 +42,50 @@ export default function ProfilePage() {
     const timer = setTimeout(() => setTimedOut(true), 2500);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const emailLower = (profile?.email || 'member@careerbridge.com').toLowerCase().trim();
+    const stage = localStorage.getItem(`cb_onboarding_stage_${emailLower}`);
+    setCurrentStage(stage);
+    try {
+      const res = localStorage.getItem(`cb_onboarding_result_${emailLower}`);
+      if (res) setStageResult(JSON.parse(res));
+      const hist = localStorage.getItem(`cb_onboarding_history_${emailLower}`);
+      if (hist) setStageHistory(JSON.parse(hist));
+    } catch {}
+  }, [profile?.email]);
+
+  const handleChangeStage = async () => {
+    const emailLower = (profile?.email || 'member@careerbridge.com').toLowerCase().trim();
+    const userId = profile?.id || emailLower;
+    
+    // Archive current run into history
+    if (currentStage && typeof window !== 'undefined') {
+      try {
+        const histRaw = localStorage.getItem(`cb_onboarding_history_${emailLower}`);
+        const historyList = histRaw ? JSON.parse(histRaw) : [];
+        historyList.push({
+          stage: currentStage,
+          result: stageResult,
+          changedAt: new Date().toISOString()
+        });
+        localStorage.setItem(`cb_onboarding_history_${emailLower}`, JSON.stringify(historyList));
+      } catch (e) {
+        console.error('Failed to archive onboarding stage history:', e);
+      }
+    }
+
+    try {
+      await onboardingService.resetOnboarding(userId);
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`cb_onboarding_completed_${emailLower}`);
+    }
+
+    router.push('/onboarding');
+  };
 
   // Instant profile render: use cached profile if available or resilient member placeholder
   const effectiveProfile = profile || {
@@ -257,6 +309,99 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+
+            {/* Academic Stage & Onboarding Path Card */}
+            <div className="glass-card p-6 border border-white/10 relative overflow-hidden bg-gradient-to-br from-slate-900/80 to-slate-950/90 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                    <Compass size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">Academic Stage</h3>
+                    <p className="text-[11px] text-slate-400 font-medium">Personalized Journey</p>
+                  </div>
+                </div>
+                {stageHistory.length > 0 && (
+                  <button
+                    onClick={() => setShowHistoryModal(!showHistoryModal)}
+                    className="text-[11px] font-bold text-slate-400 hover:text-white flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-lg transition-colors border border-white/5"
+                    title="View past stage results"
+                  >
+                    <History size={13} />
+                    <span>{stageHistory.length} Past</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3 mb-5">
+                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Current Track</div>
+                  <div className="font-bold text-white text-sm flex items-center gap-2">
+                    {currentStage === '12th_standard' && (
+                      <>
+                        <span className="text-amber-400">🎒</span> 12th Standard Discovery
+                      </>
+                    )}
+                    {currentStage === 'early_college' && (
+                      <>
+                        <span className="text-blue-400">🏛️</span> 1st & 2nd Year (Domain Track)
+                      </>
+                    )}
+                    {currentStage === 'final_college' && (
+                      <>
+                        <span className="text-emerald-400">🎯</span> 3rd & 4th Year (Placement Ready)
+                      </>
+                    )}
+                    {!currentStage && (
+                      <span className="text-slate-400 italic font-normal text-xs">Standard Student Track</span>
+                    )}
+                  </div>
+                  {stageResult?.suggestedBranches?.[0] && (
+                    <div className="text-xs text-blue-300 mt-1 font-medium">
+                      Suggested: {stageResult.suggestedBranches[0].name}
+                    </div>
+                  )}
+                  {stageResult?.primaryDomain?.name && (
+                    <div className="text-xs text-blue-300 mt-1 font-medium">
+                      Domain: {stageResult.primaryDomain.name}
+                    </div>
+                  )}
+                  {stageResult?.placementPlan?.targetDomain && (
+                    <div className="text-xs text-emerald-300 mt-1 font-medium">
+                      Target: {stageResult.placementPlan.targetDomain} ({stageResult.placementPlan.track} track)
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleChangeStage}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>Change My Stage</span>
+                <ArrowRight size={14} />
+              </button>
+              <p className="text-[10px] text-slate-500 text-center mt-2 leading-tight">
+                Switching stages preserves your previous roadmaps & logs your history.
+              </p>
+
+              {/* History Expandable */}
+              {showHistoryModal && stageHistory.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-white/10 space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Completed Stages</div>
+                  <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                    {stageHistory.map((h, i) => (
+                      <div key={i} className="text-[11px] p-2 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between">
+                        <span className="font-semibold text-slate-300 capitalize">{h.stage?.replace('_', ' ')}</span>
+                        <span className="text-[9px] text-slate-500">{new Date(h.changedAt).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Column: Detailed Sections */}

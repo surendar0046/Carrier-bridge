@@ -7,8 +7,9 @@ import Link from 'next/link';
 type UserRole = 'student' | 'professional';
 
 export default function SignupPage() {
+  const [mounted, setMounted] = useState(false);
   const [role, setRole] = useState<UserRole>('student');
-  const [studentTrack, setStudentTrack] = useState<'first_year' | 'fresher'>('first_year');
+  const [studentStage, setStudentStage] = useState<'school' | 'early' | 'final'>('school');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,42 +18,52 @@ export default function SignupPage() {
   const router = useRouter();
 
   React.useEffect(() => {
+    setMounted(true);
     clearError();
   }, [clearError]);
 
   // Immediate redirect as soon as user is authenticated
   React.useEffect(() => {
+    if (!mounted) return;
     if (isInitialized && isAuthenticated) {
-      if (typeof window !== 'undefined' && email) {
-        const emailKey = email.toLowerCase().trim();
+      const emailKey = (email || '').toLowerCase().trim();
+      const stageRoute = studentStage === 'school' ? '/onboarding/school' : studentStage === 'early' ? '/onboarding/early' : '/onboarding/final';
+      if (typeof window !== 'undefined' && emailKey) {
         if (role === 'student') {
-          localStorage.setItem(`cb_student_track_${emailKey}`, studentTrack);
+          localStorage.setItem(`cb_onboarding_stage_${emailKey}`, studentStage);
+          localStorage.setItem(`cb_role_${emailKey}`, 'student');
         } else {
-          localStorage.setItem(`cb_student_track_${emailKey}`, 'professional');
+          localStorage.setItem(`cb_role_${emailKey}`, 'professional');
         }
+        const hasCompletedOnboarding = localStorage.getItem(`cb_onboarding_completed_${emailKey}`) === 'true';
+        const targetRoute = role === 'professional' 
+          ? '/professional' 
+          : (hasCompletedOnboarding ? '/dashboard' : stageRoute);
+        router.replace(targetRoute);
+        return;
       }
-      router.replace(role === 'professional' ? '/professional' : '/dashboard');
+      router.replace(role === 'professional' ? '/professional' : stageRoute);
     }
-  }, [isInitialized, isAuthenticated, email, role, studentTrack, router]);
+  }, [mounted, isInitialized, isAuthenticated, email, role, studentStage, router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
+    const stageRoute = studentStage === 'school' ? '/onboarding/school' : studentStage === 'early' ? '/onboarding/early' : '/onboarding/final';
     if (typeof window !== 'undefined' && email) {
       const emailKey = email.toLowerCase().trim();
       if (role === 'student') {
-        localStorage.setItem(`cb_student_track_${emailKey}`, studentTrack);
+        localStorage.setItem(`cb_onboarding_stage_${emailKey}`, studentStage);
         localStorage.setItem(`cb_role_${emailKey}`, 'student');
         localStorage.setItem('cb_active_mode', 'student');
       } else {
-        localStorage.setItem(`cb_student_track_${emailKey}`, 'professional');
         localStorage.setItem(`cb_role_${emailKey}`, 'professional');
         localStorage.setItem('cb_active_mode', 'professional');
       }
     }
     const ok = await signup(name, email, password, role);
     if (ok) {
-      router.replace(role === 'professional' ? '/professional' : '/dashboard');
+      router.replace(role === 'professional' ? '/professional' : stageRoute);
     }
   };
 
@@ -184,39 +195,57 @@ export default function SignupPage() {
                 ))}
               </div>
 
-              {/* Student Track Sub-selector */}
+              {/* Student Stage Sub-selector (3 Stages) */}
               {role === 'student' && (
-                <div className="p-3 rounded-2xl bg-violet-50/60 border border-violet-100 space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-violet-700">Select Student Level:</span>
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-violet-50/80 to-indigo-50/60 border border-violet-100 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-violet-800">Select Your Current Stage:</span>
+                    <span className="text-[9px] font-bold text-violet-600 bg-violet-100/60 px-2 py-0.5 rounded-full">3 Stages</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
                       type="button"
-                      onClick={() => setStudentTrack('first_year')}
-                      className={`p-2.5 rounded-xl text-left border text-xs font-bold transition-all ${
-                        studentTrack === 'first_year'
-                          ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'
+                      onClick={() => setStudentStage('school')}
+                      className={`p-2.5 rounded-xl text-left border transition-all ${
+                        studentStage === 'school'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20 ring-2 ring-emerald-500/20'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30'
                       }`}
                     >
-                      <div className="text-[11px] font-black">🎓 1st Year</div>
-                      <div className={`text-[9px] font-medium leading-tight mt-0.5 ${studentTrack === 'first_year' ? 'text-violet-100' : 'text-slate-400'}`}>
-                        After 12th Completed
-                      </div>
+                      <span className="block text-[11px] font-black">🎓 12th Standard</span>
+                      <span className={`block text-[9px] font-medium leading-tight mt-0.5 ${studentStage === 'school' ? 'text-emerald-100' : 'text-slate-400'}`}>
+                        Branch Discovery
+                      </span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => setStudentTrack('fresher')}
-                      className={`p-2.5 rounded-xl text-left border text-xs font-bold transition-all ${
-                        studentTrack === 'fresher'
-                          ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300'
+                      onClick={() => setStudentStage('early')}
+                      className={`p-2.5 rounded-xl text-left border transition-all ${
+                        studentStage === 'early'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20 ring-2 ring-blue-500/20'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
                       }`}
                     >
-                      <div className="text-[11px] font-black">🚀 College Fresher</div>
-                      <div className={`text-[9px] font-medium leading-tight mt-0.5 ${studentTrack === 'fresher' ? 'text-violet-100' : 'text-slate-400'}`}>
-                        2nd, 3rd, 4th Year
-                      </div>
+                      <span className="block text-[11px] font-black">🧭 1st & 2nd Year</span>
+                      <span className={`block text-[9px] font-medium leading-tight mt-0.5 ${studentStage === 'early' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        Domain Roadmap
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setStudentStage('final')}
+                      className={`p-2.5 rounded-xl text-left border transition-all ${
+                        studentStage === 'final'
+                          ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20 ring-2 ring-violet-500/20'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-violet-300 hover:bg-violet-50/30'
+                      }`}
+                    >
+                      <span className="block text-[11px] font-black">🎯 3rd & 4th Year</span>
+                      <span className={`block text-[9px] font-medium leading-tight mt-0.5 ${studentStage === 'final' ? 'text-violet-100' : 'text-slate-400'}`}>
+                        Placement Sprint
+                      </span>
                     </button>
                   </div>
                 </div>

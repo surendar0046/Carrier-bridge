@@ -66,7 +66,11 @@ export default function LoginPage() {
         if (isProUser) {
           router.replace('/professional');
         } else {
-          router.replace('/dashboard');
+          const emailKey = (profile.email || email).toLowerCase().trim();
+          const hasCompletedOnboarding = typeof window !== 'undefined' && localStorage.getItem(`cb_onboarding_completed_${emailKey}`) === 'true';
+          const savedStage = typeof window !== 'undefined' ? localStorage.getItem(`cb_onboarding_stage_${emailKey}`) : null;
+          const stageRoute = savedStage === 'school' ? '/onboarding/school' : savedStage === 'early' ? '/onboarding/early' : savedStage === 'final' ? '/onboarding/final' : '/onboarding';
+          router.replace(hasCompletedOnboarding ? '/dashboard' : stageRoute);
         }
       }
     }
@@ -100,7 +104,9 @@ export default function LoginPage() {
       if (isProUser) {
         router.replace('/professional');
       } else {
-        router.replace('/dashboard');
+        const emailKey = (activeProf?.email || email).toLowerCase().trim();
+        const hasCompletedOnboarding = typeof window !== 'undefined' && localStorage.getItem(`cb_onboarding_completed_${emailKey}`) === 'true';
+        router.replace(hasCompletedOnboarding ? '/dashboard' : '/onboarding');
       }
     }
   };

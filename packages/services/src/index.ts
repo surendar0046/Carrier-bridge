@@ -32,4 +32,5 @@ export {
   type PracticeCategory
 } from './modules/practiceProgressService';
 export { httpClient } from './client/httpClient';
+export { onboardingService } from './modules/onboardingService';
 export { env } from '@career-bridge/config';

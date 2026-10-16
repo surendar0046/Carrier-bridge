@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useJobsStore, useUserStore, useGamificationStore, useAuthStore, useMentorStore } from '@career-bridge/store';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PDF_COURSES, PdfCourse } from '../courses/pdf-courses-data';
+import { Sparkles, Edit3, CheckCircle2, Compass, BookOpen, ArrowRight, ShieldCheck, RefreshCw, Layers, Video } from 'lucide-react';
 
 export default function DashboardPage() {
   const { fetchFeaturedJobs, featuredJobs, applications, fetchApplications } = useJobsStore();
@@ -13,6 +15,9 @@ export default function DashboardPage() {
   const [loaded, setLoaded] = useState(false);
   const [isEditingRole, setIsEditingRole] = useState(false);
   const [newRole, setNewRole] = useState('');
+  const [onboardingStage, setOnboardingStage] = useState<string | null>(null);
+  const [onboardingResult, setOnboardingResult] = useState<any>(null);
+  const [mentorMeeting, setMentorMeeting] = useState<any>(null);
   
   const router = useRouter();
   const fetchedRef = React.useRef(false);
@@ -41,6 +46,60 @@ export default function DashboardPage() {
       fetchMySessions(),
     ]).catch(() => {/* non-critical, fail silently */});
   }, [isAuthenticated, router, fetchProfile, fetchFeaturedJobs, fetchGam, fetchApplications, fetchMySessions]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const emailKey = profile?.email ? profile.email.toLowerCase().trim() : '';
+    if (!emailKey) return;
+
+    // Student must complete onboarding before viewing dashboard
+    const roleLower = String(profile?.role || '').toLowerCase();
+    if (roleLower === 'student') {
+      const hasCompleted = localStorage.getItem(`cb_onboarding_completed_${emailKey}`) === 'true';
+      if (!hasCompleted) {
+        router.replace('/onboarding');
+        return;
+      }
+    }
+
+    const stage = localStorage.getItem(`cb_onboarding_stage_${emailKey}`);
+    setOnboardingStage(stage);
+
+    try {
+      const rawResult = localStorage.getItem(`cb_onboarding_result_${emailKey}`);
+      if (rawResult) {
+        setOnboardingResult(JSON.parse(rawResult));
+      } else {
+        const rawPrefs = localStorage.getItem(`cb_prefs_${emailKey}`);
+        if (rawPrefs) {
+          const parsed = JSON.parse(rawPrefs);
+          if (parsed.recommendation) {
+            setOnboardingResult(parsed.recommendation);
+          }
+        }
+      }
+      try {
+        const rawMeeting = localStorage.getItem(`cb_mentor_meeting_${emailKey}`);
+        if (rawMeeting) {
+          setMentorMeeting(JSON.parse(rawMeeting));
+        }
+      } catch (err) {
+        console.error('Failed reading mentor meeting:', err);
+      }
+    } catch (e) {
+      console.error('Failed reading onboarding result in dashboard:', e);
+    }
+  }, [profile?.email]);
+
+  const matchedCourses = React.useMemo(() => {
+    if (onboardingStage === '12th_standard') {
+      return PDF_COURSES.filter(c => ['python-mastery', 'html-css-cheatsheet'].includes(c.id));
+    }
+    if (onboardingStage === 'early_college') {
+      return PDF_COURSES.filter(c => ['javascript-guide', 'java-complete-guide'].includes(c.id));
+    }
+    return PDF_COURSES.filter(c => ['python-mastery', 'javascript-guide', 'java-complete-guide'].includes(c.id));
+  }, [onboardingStage]);
 
 
   const stats = [
@@ -101,6 +160,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Scheduled Mentor Google Meet Banner */}
+        {mentorMeeting && (
+          <div className="mb-10 p-6 sm:p-7 rounded-[2.5rem] bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
+                <Video className="text-white" size={28} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-3 py-0.5 rounded-full border border-emerald-500/30">
+                    Live 1-on-1 Google Meet
+                  </span>
+                  <span className="text-xs text-slate-300 font-semibold">
+                    📅 {mentorMeeting.dayLabel} at {mentorMeeting.display} IST
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-white">
+                  Mentorship Meeting with {mentorMeeting.mentorName}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {mentorMeeting.topic || `${mentorMeeting.assignedDomain} Onboarding Guidance`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 relative z-10">
+              <Link
+                href={mentorMeeting.meetUrl || `/meet/${mentorMeeting.meetCode}`}
+                target="_blank"
+                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-xl shadow-emerald-500/25 flex items-center gap-2 transition hover:scale-105"
+              >
+                <Video size={16} />
+                <span>Join Google Meet Call</span>
+              </Link>
+              <Link
+                href="/mentor/sessions"
+                className="px-5 py-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700"
+              >
+                View Sessions
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
               {stats.map((stat, idx) => (
@@ -117,6 +222,145 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Content Column */}
               <div className="lg:col-span-2 space-y-8">
+
+                {/* Suggested For You Card */}
+                <div className="bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-white border border-blue-200 rounded-[2rem] p-8 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">✨</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-blue-700">
+                          Suggested For You
+                        </span>
+                        {onboardingStage && (
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full">
+                            {onboardingStage === '12th_standard' && '12th Standard Discovery'}
+                            {onboardingStage === 'early_college' && '1st & 2nd Year Domain'}
+                            {onboardingStage === 'final_college' && '3rd & 4th Year Placement'}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <Link 
+                          href={
+                            onboardingStage === '12th_standard' ? '/onboarding/school' :
+                            onboardingStage === 'early_college' ? '/onboarding/early' :
+                            onboardingStage === 'final_college' ? '/onboarding/final' : '/onboarding'
+                          }
+                          className="text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors group"
+                        >
+                          <Edit3 size={13} />
+                          <span>Edit my answers</span>
+                        </Link>
+                        <Link
+                          href="/practice"
+                          className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                        >
+                          <ShieldCheck size={14} />
+                          <span>Verify your fit</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+                        {onboardingStage === '12th_standard' && (onboardingResult?.suggestedBranches?.[0]?.name || activeRole || 'Computer Science & Engineering')}
+                        {onboardingStage === 'early_college' && (onboardingResult?.primaryDomain?.name || activeRole || 'Full-Stack Development')}
+                        {onboardingStage === 'final_college' && (onboardingResult?.placementPlan?.targetDomain || activeRole || 'Software Development Track')}
+                        {!onboardingStage && (activeRole || 'Full-Stack Developer')}
+                        <span className="text-xs font-bold px-2.5 py-1 bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-full">
+                          High Match • 95% Fit
+                        </span>
+                      </h2>
+                    </div>
+
+                    {/* Reasons */}
+                    <div className="space-y-2 mb-6 bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-blue-100">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Why this was suggested:</div>
+                      {((onboardingResult?.suggestedBranches?.[0]?.reasons || 
+                         onboardingResult?.primaryDomain?.reasons || 
+                         onboardingResult?.reasons) || [
+                        'Aligned with your primary technical interests and problem-solving preferences.',
+                        'Optimized starting milestone roadmap tailored to your graduation timeline.',
+                        'High employer demand and continuous career growth outlook.'
+                      ]).map((r: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-700">
+                          <CheckCircle2 size={14} className="text-blue-600 mt-0.5 shrink-0" />
+                          <span>{r}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick Road to Action */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Link 
+                        href="/roadmap"
+                        className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-blue-600/20 transition-all hover:scale-[1.02]"
+                      >
+                        <Compass size={14} />
+                        <span>Open Personalized Roadmap</span>
+                        <ArrowRight size={13} />
+                      </Link>
+                      <Link 
+                        href="/courses"
+                        className="text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all"
+                      >
+                        <BookOpen size={14} />
+                        <span>Explore Enrolled Courses</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Populated Matched Courses Section */}
+                <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <div className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-1">
+                        Curated Learning
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900">Courses Matched to Your Path</h3>
+                    </div>
+                    <Link href="/courses" className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group">
+                      All Courses <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {matchedCourses.map((c) => (
+                      <Link
+                        key={c.id}
+                        href="/courses"
+                        className="p-5 rounded-2xl border border-slate-200 hover:border-blue-400/60 hover:shadow-md transition-all group bg-slate-50/50 flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-2xl">{c.emoji}</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                              {c.level}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1 text-base">
+                            {c.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                            {c.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200/60 text-xs font-bold text-slate-600">
+                          <span>{c.modules.length} Modules • {c.totalPages} Pages</span>
+                          <span className="text-blue-600 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            Start Learning →
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
                 {/* XP & Level Section */}
                 <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm premium-glow-card">
                   <div className="flex justify-between items-end mb-6">

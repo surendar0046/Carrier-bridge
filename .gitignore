@@ -16,6 +16,8 @@ build
 out
 coverage
 .cache
+*.tsbuildinfo
+backend/**/dist
 
 # logs
 *.log

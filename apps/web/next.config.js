@@ -27,6 +27,20 @@ const nextConfig = {
   compress: true,
   reactStrictMode: false,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: '/quiz',
+        destination: '/onboarding',
+        permanent: true,
+      },
+      {
+        source: '/quiz/:path*',
+        destination: '/onboarding',
+        permanent: true,
+      },
+    ];
+  },
   // Serve static assets with long-lived cache headers only in production
   async headers() {
     if (process.env.NODE_ENV !== 'production') {

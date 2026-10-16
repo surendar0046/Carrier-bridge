@@ -6,7 +6,8 @@
     "build": "node scripts/prepare-deploy.js",
     "start": "node server.js",
     "dev": "npm --prefix apps/web run dev",
-    "lint": "npm --prefix apps/web run lint"
+    "lint": "npm --prefix apps/web run lint",
+    "verify:onboarding": "node backend/gateway/node_modules/tsx/dist/cli.mjs scripts/verify-onboarding.ts"
   },
   "dependencies": {
     "axios": "^1.6.0",

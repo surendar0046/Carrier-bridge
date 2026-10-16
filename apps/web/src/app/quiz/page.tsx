@@ -7,12 +7,12 @@ export default function QuizPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard');
+    router.replace('/onboarding');
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
     </div>
   );
 }
